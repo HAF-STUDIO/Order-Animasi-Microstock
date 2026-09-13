@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Order Animasi Microstock — Pesanan & Tracking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #12162B; --navy-soft: #1D2240;
+    --paper: #F4F5F9; --panel: #FFFFFF; --panel-alt: #EDEFF6;
+    --border: #E1E4EE; --border-strong: #C7CCDE;
+    --ink: #12131A; --ink-soft: #4A4D5E; --ink-faint: #868AA0;
+    --accent: #FFA733; --accent-strong: #E88F12; --accent-ink: #17181F;
+    --teal: #0E9C90; --teal-bg: #E7F7F5; --teal-border: #B7E7E1;
+    --coral: #E8503D; --coral-bg: #FDEEEC; --coral-border: #F5C2BA;
+    --blue-bg: #EAF0FF; --blue-border: #C7D6FA; --blue-ink: #1E3A8A;
+    --radius-lg: 18px; --radius-md: 12px; --radius-sm: 8px;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif;
+    --shadow-card: 0 1px 2px rgba(18,22,43,0.04), 0 8px 24px -12px rgba(18,22,43,0.12);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15.5px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  #app { max-width: 720px; margin: 0 auto; }
+  main, header.top, nav.tabs, footer.foot { max-width: 720px; margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; }
+
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; border-radius: 4px; }
+
+  .top-stripe { height: 5px; background: repeating-linear-gradient(115deg, var(--accent) 0 16px, var(--navy) 16px 32px); }
+
+  header.top { background: var(--navy); color: #fff; padding: 26px 20px 24px; margin-bottom: 0; border-radius: 0 0 22px 22px; box-shadow: 0 12px 28px -18px rgba(18,22,43,0.55); }
+  header.top .top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header.top .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -0.01em; margin: 0 0 6px 0; color: #fff; }
+  header.top .tagline { color: #A9AEC7; font-size: 14px; margin: 0; font-weight: 400; }
+  header.top .frame-mark { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: #E7E9F5; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px 7px 11px; white-space: nowrap; }
+  header.top .frame-mark .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+
+  nav.tabs { display: flex; gap: 8px; margin: 18px auto 28px; padding-top: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  nav.tabs button { background: var(--panel); border: 1px solid var(--border); color: var(--ink-soft); font-family: var(--font-body); font-size: 14.5px; font-weight: 600; padding: 11px 18px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: 0.15s ease; flex: none; }
+  nav.tabs button:hover { border-color: var(--border-strong); color: var(--ink); }
+  nav.tabs button.active { color: var(--accent-ink); border-color: var(--accent); background: var(--accent); box-shadow: 0 4px 10px -4px rgba(232,143,18,0.55); }
+
+  h2.panel-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 0 0 6px 0; letter-spacing: -0.01em; }
+  p.panel-sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 20px 0; }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 18px; box-shadow: var(--shadow-card); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 620px) { .grid2 { grid-template-columns: 1fr; gap: 4px; } }
+
+  label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 7px; font-weight: 600; }
+  .field { margin-bottom: 18px; }
+  input[type=text], input[type=number], input[type=tel], input[type=url], textarea {
+    width: 100%; background: var(--panel-alt); border: 1px solid var(--border); color: var(--ink);
+    border-radius: var(--radius-sm); padding: 13px 14px; font-family: var(--font-body); font-size: 16px;
+    min-height: 48px; transition: 0.15s ease;
+  }
+  textarea { resize: vertical; min-height: 92px; }
+  input:focus, textarea:focus { outline: none; background: var(--panel); border-color: var(--accent-strong); box-shadow: 0 0 0 4px rgba(255,167,51,0.18); }
+  input::placeholder, textarea::placeholder { color: var(--ink-faint); }
+
+  .chip-group { display: flex; flex-wrap: wrap; gap: 9px; }
+  .chip { border: 1px solid var(--border); background: var(--panel); border-radius: 999px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: var(--ink-soft); user-select: none; font-weight: 500; transition: 0.15s ease; min-height: 40px; display: inline-flex; align-items: center; }
+  .chip:hover { border-color: var(--border-strong); }
+  .chip.selected { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 600; }
+
+  button.btn { font-family: var(--font-body); font-weight: 700; font-size: 15.5px; border-radius: var(--radius-sm); padding: 14px 24px; cursor: pointer; border: 1px solid transparent; transition: 0.15s ease; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; }
+  button.btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 4px 12px -4px rgba(232,143,18,0.5); width: 100%; }
+  button.btn-primary:hover { background: var(--accent-strong); transform: translateY(-1px); box-shadow: 0 6px 16px -4px rgba(232,143,18,0.55); }
+  button.btn-ghost { background: transparent; color: var(--ink-soft); border-color: var(--border-strong); width: auto; }
+  button.btn-ghost:hover { background: var(--panel-alt); color: var(--ink); }
+  button.btn-small { padding: 10px 18px; font-size: 14px; width: auto; min-height: 42px; }
+
+  .msg { padding: 14px 18px; border-radius: var(--radius-sm); font-size: 14.5px; margin-bottom: 18px; font-weight: 500; }
+  .msg-error { background: var(--coral-bg); border: 1px solid var(--coral-border); color: #9C2A1D; }
+  .msg-info { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-ink); }
+
+  .estimate-box { background: var(--panel-alt); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius-md); padding: 20px 22px; }
+  .estimate-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; padding: 6px 0; color: var(--ink-soft); }
+  .estimate-row.total { color: var(--ink); font-weight: 700; font-size: 18px; border-top: 1px solid var(--border-strong); margin-top: 10px; padding-top: 14px; }
+
+  .tier-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+  .tier-table th { text-align: left; color: var(--ink-faint); font-weight: 600; font-size: 11.5px; padding: 10px 8px; border-bottom: 1px solid var(--border-strong); }
+  .tier-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); color: var(--ink-soft); font-weight: 500; }
+
+  .id-display { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: 0.04em; background: var(--panel-alt); border: 2px dashed var(--border-strong); color: var(--navy); padding: 20px; border-radius: var(--radius-md); text-align: center; margin: 4px 0 20px; word-break: break-all; }
+
+  .stepper { display: flex; margin: 30px 0 22px; position: relative; }
+  .step { flex: 1; text-align: center; position: relative; min-width: 0; padding: 0 2px; }
+  .step .dot { width: 32px; height: 32px; border-radius: 50%; background: var(--panel); border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 13px; font-weight: 700; color: var(--ink-faint); position: relative; z-index: 2; transition: 0.3s ease; }
+  .step .line { position: absolute; top: 15px; left: -50%; width: 100%; height: 3px; background: var(--border-strong); z-index: 1; }
+  .step:first-child .line { display: none; }
+  .step.done .dot { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .step.done .line { background: var(--navy); }
+  .step.active .line { background: var(--navy); }
+  .step.active .dot { background: var(--teal); border-color: var(--teal); color: #fff; box-shadow: 0 0 0 5px var(--teal-bg); }
+  .step .label { font-size: 11.5px; color: var(--ink-faint); font-weight: 500; line-height: 1.3; }
+  .step.active .label { color: var(--teal); font-weight: 700; }
+  .step.done .label { color: var(--ink); font-weight: 600; }
+  @media (max-width: 480px) { .step .label { font-size: 10px; } .step .dot { width: 26px; height: 26px; font-size: 11.5px; } .step .line { top: 12px; } }
+
+  .cancelled-banner { background: var(--coral-bg); border: 1px solid var(--coral-border); color: #9C2A1D; padding: 14px 18px; border-radius: var(--radius-md); font-size: 15px; margin: 4px 0 20px; font-weight: 600; }
+  .drive-box { margin-top: 22px; padding: 18px 20px; background: var(--teal-bg); border: 1px solid var(--teal-border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+  .drive-box label { color: #0B6B62; margin-bottom: 4px; }
+  .drive-box .drive-note { font-size: 13.5px; color: #0E7C71; font-weight: 500; }
+  .btn-drive { background: var(--teal); color: #fff; border-color: var(--teal); box-shadow: 0 4px 12px -4px rgba(14,156,144,0.5); width: auto; text-decoration: none; }
+
+  .pay-box { margin-top: 4px; padding: 20px 22px; background: var(--blue-bg); border: 1px solid var(--blue-border); border-radius: var(--radius-md); }
+  .pay-box .pay-title { font-weight: 700; color: var(--blue-ink); margin-bottom: 12px; font-size: 15px; }
+  .pay-box .bank-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 14.5px; color: var(--ink-soft); }
+  .pay-box .bank-row .val { font-weight: 700; color: var(--blue-ink); }
+  .verif-note { background: var(--teal-bg); border: 1px solid var(--teal-border); color: #0B6B62; padding: 14px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 600; margin: 4px 0 20px; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+  @media (max-width: 480px) { .detail-grid { grid-template-columns: 1fr; gap: 14px; } }
+  .detail-value { color: var(--ink); font-weight: 600; font-size: 15px; }
+
+  footer.foot { margin: 44px auto 60px; text-align: center; color: var(--ink-faint); font-size: 13px; }
+
+  @media (max-width: 640px) {
+    header.top { border-radius: 0 0 16px 16px; padding: 22px 18px 20px; }
+    .card { padding: 20px; border-radius: var(--radius-md); }
+    h2.panel-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<div id="app"><div id="content">Memuat aplikasi...</div></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // =========================================================================
+  // KONFIGURASI APLIKASI
+  // =========================================================================
+  var CONFIG = {
+    webAppUrl: "https://script.google.com/macros/s/AKfycbwA-u6x3gHi7eLIo6_n51IWfguW4e-maCGnWhIE5NgU-lPer3vOFjjvLn-IckEzvESCjQ/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
+    businessName: "Order Animasi Microstock",
+    currency: "Rp",
+    rates: {
+      tier1Max: 50, tier2Max: 100,
+      tier1Price: 5000, tier2Price: 4000, tier3Price: 3000,
+      metadataFeePerPlatform: 5000
+    },
+    payment: {
+      bankName: "BCA",
+      accountNumber: "5410769257",
+      accountName: "Hersani Ardia Firmansyah"
+    }
+  };
+  // =========================================================================
+
+  var STEP_ORDER = ["Brief Diterima","Pembayaran","Verifikasi","Order Dikerjakan","Selesai"];
+  var PLATFORMS_KNOWN = ["Adobe Stock","Shutterstock","Vecteezy"];
+
+  function uid(){ return "PRJ-" + Date.now().toString(36).toUpperCase().slice(-4) + Math.random().toString(36).toUpperCase().slice(2,6); }
+
+  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofLink: "", statusProofError: "", orderMsg: null };
+
+  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], platformsManual:"", qty:10, referenceLink:"", note:"" }; }
+  function freshCalc(){ return { qty:10, platforms:[], platformsManual:"" }; }
+
+  function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
+
+  function resolvePlatforms(known, manualText){
+    var manual = (manualText||"").split(/[,\n]/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+    var all = (known||[]).slice();
+    manual.forEach(function(m){ if(all.map(function(x){return x.toLowerCase();}).indexOf(m.toLowerCase()) === -1) all.push(m); });
+    return all;
+  }
+
+  function computePrice(qty, platformCount){
+    var r = CONFIG.rates, q = Math.max(Number(qty)||0, 0), p = Math.max(Number(platformCount)||0, 0);
+    var unitPrice = q <= r.tier1Max ? r.tier1Price : (q <= r.tier2Max ? r.tier2Price : r.tier3Price);
+    var subtotal = unitPrice * q, metadataFee = p > 1 ? p * r.metadataFeePerPlatform : 0;
+    return {
+      unitPrice: unitPrice,
+      items: [{label: q + " video \u00d7 " + fmtMoney(unitPrice), value: subtotal}, {label: "Metadata (" + p + " platform)", value: metadataFee}].filter(function(it){ return it.value !== 0; }),
+      subtotal: subtotal, total: subtotal + metadataFee
+    };
+  }
+
+  function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function paymentBoxHtml(total){
+    return '<div class="pay-box"><div class="pay-title">Instruksi Pembayaran</div>' +
+      '<div class="bank-row"><span>Bank</span><span class="val">'+escapeHtml(CONFIG.payment.bankName)+'</span></div>' +
+      '<div class="bank-row"><span>No. Rekening</span><span class="val">'+escapeHtml(CONFIG.payment.accountNumber)+'</span></div>' +
+      '<div class="bank-row"><span>Atas Nama</span><span class="val">'+escapeHtml(CONFIG.payment.accountName)+'</span></div>' +
+      '<div class="bank-row"><span>Total Tagihan</span><span class="val">'+fmtMoney(total)+'</span></div>' +
+      '</div>';
+  }
+
+  function syncToSheet(action, project){
+    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
+    try{
+      fetch(CONFIG.webAppUrl, {
+        method: "POST", mode: "no-cors", headers: {"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({
+          action: action, id: project.id, clientName: project.clientName, clientPhone: project.clientPhone,
+          platforms: (project.platforms||[]).join(", "), qty: project.qty, theme: project.theme || "",
+          status: project.status, buktiTransferLink: project.buktiTransferLink || "", googleDriveLink: project.googleDriveLink || "",
+          total: project.price ? project.price.total : 0, paid: !!project.paid
+        })
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  function render(){
+    var c = document.getElementById("content");
+    var html = '<header class="top"><div class="top-row"><div><p class="brand-name">'+escapeHtml(CONFIG.businessName)+'</p><p class="tagline">Pemesanan &amp; pelacakan status proyek</p></div><div class="frame-mark"><span class="dot"></span>Sistem Online</div></div>' +
+      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button></nav></header>';
+    html += '<main>';
+    if(state.tab === "order") html += renderOrderTab();
+    else if(state.tab === "status") html += renderStatusTab();
+    else if(state.tab === "calc") html += renderCalcTab();
+    html += '</main><footer class="foot">Sistem terenkripsi aman &mdash; Data Anda tersimpan secara privat.</footer>';
+    c.innerHTML = html; attachHandlers();
+  }
+
+  function renderOrderTab(){
+    var f = state.orderForm;
+    if(state.orderMsg && state.orderMsg.newId){
+      var id = state.orderMsg.newId, project = state.orderMsg.project;
+      if(state.orderMsg.phase === "proof_sent"){
+        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div><div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
+      }
+      return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu kirim bukti transfer di bawah ini.</p>' +
+        '<div class="card"><div class="id-display">'+id+'</div>' +
+        paymentBoxHtml(project.price.total) +
+        '<div class="field" style="margin-top:18px;"><label>Link Bukti Transfer</label><input type="url" id="proof-link-input" value="'+escapeHtml(state.orderMsg.proofLink||"")+'" placeholder="Tempel link foto/screenshot bukti transfer"></div>' +
+        (state.orderMsg.proofError ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.proofError)+'</div>' : "") +
+        '<button class="btn btn-primary" data-action="submit-proof">Saya Sudah Bayar</button>' +
+        '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-ghost btn-small" data-action="goto-status" data-id="'+id+'">Lacak Nanti</button></div>' +
+        '</div>';
+    }
+    var priceEst = computePrice(f.qty, resolvePlatforms(f.platforms, f.platformsManual).length);
+    var estRows = priceEst.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
+    return '<h2 class="panel-title">Formulir Pemesanan</h2><p class="panel-sub">Lengkapi detail kebutuhan aset video Anda.</p>' + (state.orderMsg && state.orderMsg.error ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.error)+'</div>' : "") +
+      '<div class="card">' +
+        '<div class="grid2"><div class="field"><label>Nama Lengkap</label><input type="text" id="f-clientName" value="'+escapeHtml(f.clientName)+'" placeholder="Nama Anda"></div><div class="field"><label>Nomor WhatsApp</label><input type="tel" id="f-clientPhone" value="'+escapeHtml(f.clientPhone)+'" placeholder="08xx-xxxx-xxxx"></div></div>' +
+        '<div class="field"><label>Platform Microstock (pilih satu atau lebih)</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(f.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div>' +
+        '<div class="field"><label>Platform lainnya</label><input type="text" id="f-platformsManual" value="'+escapeHtml(f.platformsManual)+'" placeholder="Pisahkan dengan koma bila lebih dari satu"></div>' +
+        '<div class="grid2"><div class="field"><label>Jumlah video (Qty)</label><input type="number" id="f-qty" min="1" value="'+f.qty+'"></div><div class="field"><label>Tautan referensi visual (opsional)</label><input type="url" id="f-referenceLink" value="'+escapeHtml(f.referenceLink)+'" placeholder="https://..."></div></div>' +
+        '<div class="field"><label>Catatan tambahan (opsional)</label><textarea id="f-note" placeholder="Gaya visual, warna, referensi mood, dll.">'+escapeHtml(f.note)+'</textarea></div>' +
+      '</div>' +
+      '<div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Estimasi tagihan</div>' + estRows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(priceEst.total)+'</span></div></div>' +
+      '<button class="btn btn-primary" data-action="submit-order">Kirim Pesanan</button>';
+  }
+
+  function renderStatusTab(){
+    var box = '<div class="card"><div class="field" style="margin-bottom:0;"><label>Kode Pesanan (PRJ-XXXX)</label><div style="display:flex; gap:10px;"><input type="text" id="status-id-input" value="'+escapeHtml(state.statusLookupId)+'" placeholder="Ketik kode di sini..." style="flex:1;"><button class="btn btn-primary btn-small" data-action="lookup-status">Lacak</button></div></div></div>';
+    var result = state.statusError ? '<div class="msg '+(state.statusError.indexOf("Mencari")>-1?"msg-info":"msg-error")+'">'+escapeHtml(state.statusError)+'</div>' : "";
+    if(state.statusResult){
+      var p = state.statusResult, curIdx = STEP_ORDER.indexOf(p.status);
+      if(p.status === "Dibatalkan") result += '<div class="cancelled-banner">Mohon maaf, pesanan ini telah dibatalkan.</div>';
+      else result += '<div class="card"><div class="stepper">' + STEP_ORDER.map(function(s,i){ return '<div class="step '+(i<curIdx?"done":(i===curIdx?"active":""))+'"><div class="line"></div><div class="dot">'+(i+1)+'</div><div class="label">'+s+'</div></div>'; }).join("") + '</div>' +
+        (p.status === "Pembayaran" ? paymentBoxHtml(p.price ? p.price.total : 0) +
+          '<div class="field" style="margin-top:18px;"><label>Link Bukti Transfer</label><input type="url" id="status-proof-link" value="'+escapeHtml(state.statusProofLink||"")+'" placeholder="Tempel link bukti transfer"></div>' +
+          (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
+          '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'">Saya Sudah Bayar</button>' : "") +
+        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' : "") +
+        '</div>';
+
+      var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
+      var driveUI = showDriveLink ? '<div class="drive-box"><div style="flex:1;"><label>File hasil animasi</label><div class="drive-note">Tautan folder Google Drive Anda sudah tersedia.</div></div><a href="'+escapeHtml(p.googleDriveLink)+'" target="_blank" rel="noopener" class="btn btn-drive">Buka Folder</a></div>' : '';
+
+      result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div><div><label>Tema animasi</label><div class="detail-value">'+(p.theme ? escapeHtml(p.theme) : '<span style="color:var(--ink-faint); font-weight:400; font-style:italic;">Menunggu review tim</span>')+'</div></div></div>' + driveUI + '</div>';
+      if(p.price) result += '<div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Ringkasan pembayaran</div><div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
+    }
+    return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres pengerjaan dan unduh hasil proyek Anda.</p>' + box + result;
+  }
+
+  function renderCalcTab(){
+    var c = state.calc, est = computePrice(c.qty, resolvePlatforms(c.platforms, c.platformsManual).length);
+    var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
+    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya pembuatan aset video Anda.</p><div class="card"><div class="field"><label>Kuantitas video</label><input type="number" id="c-qty" min="1" value="'+c.qty+'"></div><div class="field"><label>Platform microstock</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(c.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform-calc" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div><div class="field"><label>Platform tambahan</label><input type="text" id="c-platformsManual" value="'+escapeHtml(c.platformsManual)+'"></div><table class="tier-table"><thead><tr><th>Tier kuantitas</th><th>Harga per video</th></tr></thead><tbody><tr><td>1 &ndash; '+CONFIG.rates.tier1Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier1Price)+'</td></tr><tr><td>'+(CONFIG.rates.tier1Max+1)+' &ndash; '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier2Price)+'</td></tr><tr><td>Di atas '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier3Price)+'</td></tr></tbody></table></div><div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div><button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
+  }
+
+  function attachHandlers(){
+    var c = document.getElementById("content");
+    c.querySelectorAll("[data-tab]").forEach(function(btn){ btn.addEventListener("click", function(){ state.tab = btn.getAttribute("data-tab"); state.statusError = ""; state.orderMsg = null; render(); }); });
+    var bindInp = function(id, setFn){ var e = document.getElementById(id); if(e) e.addEventListener("input", function(){ setFn(e.value); }); };
+    var bindNum = function(id, setFn){ var e = document.getElementById(id); if(e) e.addEventListener("change", function(){ setFn(Number(e.value)||0); }); };
+    var clickAc = function(act, fn){ c.querySelectorAll('[data-action="'+act+'"]').forEach(function(el){ el.addEventListener("click", function(){ fn(el); }); }); };
+
+    bindInp("f-clientName", function(v){ state.orderForm.clientName = v; }); bindInp("f-clientPhone", function(v){ state.orderForm.clientPhone = v; });
+    bindInp("f-platformsManual", function(v){ state.orderForm.platformsManual = v; render(); }); bindInp("f-referenceLink", function(v){ state.orderForm.referenceLink = v; });
+    bindInp("f-note", function(v){ state.orderForm.note = v; }); bindNum("f-qty", function(v){ state.orderForm.qty = Math.max(v,1); render(); });
+
+    clickAc("toggle-platform", function(el){ var val = el.getAttribute("data-val"), idx = state.orderForm.platforms.indexOf(val); if(idx>-1) state.orderForm.platforms.splice(idx,1); else state.orderForm.platforms.push(val); render(); });
+    clickAc("submit-order", function(){
+      var f = state.orderForm; if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg = {error:"Mohon lengkapi Nama dan Nomor WhatsApp."}; render(); return; }
+      var id = uid(), project = { id: id, clientName: f.clientName.trim(), clientPhone: f.clientPhone.trim(), platforms: resolvePlatforms(f.platforms, f.platformsManual), qty: f.qty, theme: "", status: "Pembayaran", buktiTransferLink: "", googleDriveLink: "", price: computePrice(f.qty, resolvePlatforms(f.platforms, f.platformsManual).length), paid: false };
+      syncToSheet("create", project); state.orderMsg = {newId:id, project: project, phase: "awaiting_payment", proofLink: "", proofError: ""}; render();
+      window.scrollTo(0,0);
+    });
+    clickAc("order-new", function(){ state.orderForm = freshOrderForm(); state.orderMsg = null; render(); });
+    bindInp("proof-link-input", function(v){ if(state.orderMsg) state.orderMsg.proofLink = v; });
+    clickAc("submit-proof", function(){
+      var input = document.getElementById("proof-link-input");
+      var val = input ? input.value.trim() : "";
+      if(!val){ state.orderMsg.proofError = "Mohon masukkan link bukti transfer."; render(); return; }
+      var project = state.orderMsg.project;
+      project.status = "Verifikasi"; project.buktiTransferLink = val;
+      syncToSheet("update_payment", project);
+      state.orderMsg.phase = "proof_sent"; state.orderMsg.proofError = "";
+      render(); window.scrollTo(0,0);
+    });
+    clickAc("copy-id", function(el){
+      if(navigator.clipboard) navigator.clipboard.writeText(el.getAttribute("data-id")).catch(function(){});
+      var btn = el; var old = btn.innerText; btn.innerText = "Tersalin!"; setTimeout(function(){ btn.innerText = old; }, 2000);
+    });
+    clickAc("goto-status", function(el){ state.statusLookupId = el.getAttribute("data-id"); state.tab = "status"; lookupStatus(); });
+    bindInp("status-id-input", function(v){ state.statusLookupId = v; }); clickAc("lookup-status", lookupStatus);
+    bindInp("status-proof-link", function(v){ state.statusProofLink = v; });
+    clickAc("submit-proof-status", function(el){
+      var id = el.getAttribute("data-id");
+      var input = document.getElementById("status-proof-link");
+      var val = input ? input.value.trim() : "";
+      if(!val){ state.statusProofError = "Mohon masukkan link bukti transfer."; render(); return; }
+      var p = state.statusResult;
+      var project = { id: id, clientName: p.clientName, clientPhone: p.clientPhone, platforms: p.platforms, qty: p.qty, theme: p.theme, status: "Verifikasi", buktiTransferLink: val, googleDriveLink: p.googleDriveLink, price: p.price, paid: p.paid };
+      syncToSheet("update_payment", project);
+      state.statusProofError = ""; state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = val;
+      render();
+    });
+    bindNum("c-qty", function(v){ state.calc.qty = Math.max(v,1); render(); }); bindInp("c-platformsManual", function(v){ state.calc.platformsManual = v; render(); });
+    clickAc("toggle-platform-calc", function(el){ var val = el.getAttribute("data-val"), idx = state.calc.platforms.indexOf(val); if(idx>-1) state.calc.platforms.splice(idx,1); else state.calc.platforms.push(val); render(); });
+    clickAc("use-estimate-for-order", function(){ state.orderForm = freshOrderForm(); state.orderForm.qty = state.calc.qty; state.orderForm.platforms = state.calc.platforms.slice(); state.orderForm.platformsManual = state.calc.platformsManual; state.tab = "order"; render(); window.scrollTo(0,0); });
+  }
+
+  function lookupStatus(){
+    var idEl = document.getElementById("status-id-input"), id = (idEl ? idEl.value : state.statusLookupId).trim().toUpperCase(); state.statusLookupId = id;
+    if(!id){ state.statusError = "Harap masukkan kode pesanan."; state.statusResult = null; render(); return; }
+    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1){ state.statusError = "Sistem database belum dihubungkan. Mohon hubungi admin."; render(); return; }
+    state.statusError = "Mencari data ke database..."; state.statusResult = null; state.statusProofLink = ""; state.statusProofError = ""; render();
+    fetch(CONFIG.webAppUrl + "?id=" + encodeURIComponent(id))
+      .then(function(res){ return res.json(); })
+      .then(function(data){ if(data.error){ state.statusError = "Kode pesanan tidak ditemukan."; } else { state.statusError = ""; state.statusResult = data; } render(); })
+      .catch(function(){ state.statusError = "Gagal memuat data. Periksa koneksi internet Anda."; state.statusResult = null; render(); });
+  }
+  render();
+})();
+</script>
+</body>
+</html>
