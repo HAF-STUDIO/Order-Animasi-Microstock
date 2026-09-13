@@ -346,7 +346,7 @@
           project.status = "Verifikasi"; project.buktiTransferLink = data.link;
           state.orderMsg.phase = "proof_sent";
         } else {
-          state.orderMsg.proofError = "Gagal mengunggah bukti transfer. Coba lagi.";
+          state.orderMsg.proofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
         }
         render(); window.scrollTo(0,0);
       }).catch(function(){
@@ -374,7 +374,7 @@
         if(data && data.success){
           state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = data.link;
         } else {
-          state.statusProofError = "Gagal mengunggah bukti transfer. Coba lagi.";
+          state.statusProofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
         }
         render();
       }).catch(function(){
