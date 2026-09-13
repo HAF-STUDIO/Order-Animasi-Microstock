@@ -62,6 +62,9 @@
   textarea { resize: vertical; min-height: 92px; }
   input:focus, textarea:focus { outline: none; background: var(--panel); border-color: var(--accent-strong); box-shadow: 0 0 0 4px rgba(255,167,51,0.18); }
   input::placeholder, textarea::placeholder { color: var(--ink-faint); }
+  input[type=file] { width: 100%; background: var(--panel-alt); border: 1px dashed var(--border-strong); color: var(--ink-soft); border-radius: var(--radius-sm); padding: 12px 14px; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
+  .field-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 6px; }
+  button.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
   .chip-group { display: flex; flex-wrap: wrap; gap: 9px; }
   .chip { border: 1px solid var(--border); background: var(--panel); border-radius: 999px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: var(--ink-soft); user-select: none; font-weight: 500; transition: 0.15s ease; min-height: 40px; display: inline-flex; align-items: center; }
@@ -140,7 +143,7 @@
   // KONFIGURASI APLIKASI
   // =========================================================================
   var CONFIG = {
-    webAppUrl: "https://script.google.com/macros/s/AKfycby4lXo2WxrAkD6bctj7IKziZPXjymzk0ALbavH1TYIeXSQ3Qij6a7YL_B6lPWqh-Jl0/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
+    webAppUrl: "https://script.google.com/macros/s/AKfycbxboDR6dS1CEDtXyo9Mq_upXTCqfXmgxfpzmfe3ZI4-5ow-9thDOO9xDb7yslYR8XO6/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
     businessName: "Order Animasi Microstock",
     currency: "Rp",
     rates: {
@@ -161,7 +164,7 @@
 
   function uid(){ return "PRJ-" + Date.now().toString(36).toUpperCase().slice(-4) + Math.random().toString(36).toUpperCase().slice(2,6); }
 
-  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofLink: "", statusProofError: "", orderMsg: null };
+  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofError: "", statusUploading: false, orderMsg: null };
 
   function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], platformsManual:"", qty:10, referenceLink:"", note:"" }; }
   function freshCalc(){ return { qty:10, platforms:[], platformsManual:"" }; }
@@ -195,6 +198,33 @@
       '<div class="bank-row"><span>Atas Nama</span><span class="val">'+escapeHtml(CONFIG.payment.accountName)+'</span></div>' +
       '<div class="bank-row"><span>Total Tagihan</span><span class="val">'+fmtMoney(total)+'</span></div>' +
       '</div>';
+  }
+
+  function readFileAsBase64(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){
+        var result = reader.result || "";
+        var comma = result.indexOf(",");
+        resolve(comma > -1 ? result.slice(comma + 1) : result);
+      };
+      reader.onerror = function(){ reject(new Error("read_failed")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function uploadProofFile(project, file){
+    return readFileAsBase64(file).then(function(base64){
+      return fetch(CONFIG.webAppUrl, {
+        method: "POST", headers: {"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({
+          action: "upload_proof", id: project.id, clientName: project.clientName, clientPhone: project.clientPhone,
+          platforms: (project.platforms||[]).join(", "), qty: project.qty, theme: project.theme || "",
+          googleDriveLink: project.googleDriveLink || "", total: project.price ? project.price.total : 0, paid: !!project.paid,
+          fileName: file.name, mimeType: file.type || "image/jpeg", fileData: base64
+        })
+      }).then(function(res){ return res.json(); });
+    });
   }
 
   function syncToSheet(action, project){
@@ -231,12 +261,13 @@
       if(state.orderMsg.phase === "proof_sent"){
         return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div><div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
       }
-      return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu kirim bukti transfer di bawah ini.</p>' +
+      var uploading = !!state.orderMsg.uploading;
+      return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu unggah foto bukti transfer di bawah ini.</p>' +
         '<div class="card"><div class="id-display">'+id+'</div>' +
         paymentBoxHtml(project.price.total) +
-        '<div class="field" style="margin-top:18px;"><label>Link Bukti Transfer</label><input type="url" id="proof-link-input" value="'+escapeHtml(state.orderMsg.proofLink||"")+'" placeholder="Tempel link foto/screenshot bukti transfer"></div>' +
+        '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="proof-file-input" accept="image/*" '+(uploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
         (state.orderMsg.proofError ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.proofError)+'</div>' : "") +
-        '<button class="btn btn-primary" data-action="submit-proof">Saya Sudah Bayar</button>' +
+        '<button class="btn btn-primary" data-action="submit-proof" '+(uploading?"disabled":"")+'>'+(uploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' +
         '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-ghost btn-small" data-action="goto-status" data-id="'+id+'">Lacak Nanti</button></div>' +
         '</div>';
     }
@@ -262,9 +293,9 @@
       if(p.status === "Dibatalkan") result += '<div class="cancelled-banner">Mohon maaf, pesanan ini telah dibatalkan.</div>';
       else result += '<div class="card"><div class="stepper">' + STEP_ORDER.map(function(s,i){ return '<div class="step '+(i<curIdx?"done":(i===curIdx?"active":""))+'"><div class="line"></div><div class="dot">'+(i+1)+'</div><div class="label">'+s+'</div></div>'; }).join("") + '</div>' +
         (p.status === "Pembayaran" ? paymentBoxHtml(p.price ? p.price.total : 0) +
-          '<div class="field" style="margin-top:18px;"><label>Link Bukti Transfer</label><input type="url" id="status-proof-link" value="'+escapeHtml(state.statusProofLink||"")+'" placeholder="Tempel link bukti transfer"></div>' +
+          '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="status-proof-file" accept="image/*" '+(state.statusUploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
           (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
-          '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'">Saya Sudah Bayar</button>' : "") +
+          '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
         (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' : "") +
         '</div>';
 
@@ -298,20 +329,30 @@
     clickAc("submit-order", function(){
       var f = state.orderForm; if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg = {error:"Mohon lengkapi Nama dan Nomor WhatsApp."}; render(); return; }
       var id = uid(), project = { id: id, clientName: f.clientName.trim(), clientPhone: f.clientPhone.trim(), platforms: resolvePlatforms(f.platforms, f.platformsManual), qty: f.qty, theme: "", status: "Pembayaran", buktiTransferLink: "", googleDriveLink: "", price: computePrice(f.qty, resolvePlatforms(f.platforms, f.platformsManual).length), paid: false };
-      syncToSheet("create", project); state.orderMsg = {newId:id, project: project, phase: "awaiting_payment", proofLink: "", proofError: ""}; render();
+      syncToSheet("create", project); state.orderMsg = {newId:id, project: project, phase: "awaiting_payment", proofError: "", uploading: false}; render();
       window.scrollTo(0,0);
     });
     clickAc("order-new", function(){ state.orderForm = freshOrderForm(); state.orderMsg = null; render(); });
-    bindInp("proof-link-input", function(v){ if(state.orderMsg) state.orderMsg.proofLink = v; });
     clickAc("submit-proof", function(){
-      var input = document.getElementById("proof-link-input");
-      var val = input ? input.value.trim() : "";
-      if(!val){ state.orderMsg.proofError = "Mohon masukkan link bukti transfer."; render(); return; }
+      var input = document.getElementById("proof-file-input");
+      var file = input && input.files && input.files[0];
+      if(!file){ state.orderMsg.proofError = "Mohon pilih foto bukti transfer terlebih dahulu."; render(); return; }
+      if(file.size > 4*1024*1024){ state.orderMsg.proofError = "Ukuran foto terlalu besar (maksimal 4MB)."; render(); return; }
+      state.orderMsg.proofError = ""; state.orderMsg.uploading = true; render();
       var project = state.orderMsg.project;
-      project.status = "Verifikasi"; project.buktiTransferLink = val;
-      syncToSheet("update_payment", project);
-      state.orderMsg.phase = "proof_sent"; state.orderMsg.proofError = "";
-      render(); window.scrollTo(0,0);
+      uploadProofFile(project, file).then(function(data){
+        state.orderMsg.uploading = false;
+        if(data && data.success){
+          project.status = "Verifikasi"; project.buktiTransferLink = data.link;
+          state.orderMsg.phase = "proof_sent";
+        } else {
+          state.orderMsg.proofError = "Gagal mengunggah bukti transfer. Coba lagi.";
+        }
+        render(); window.scrollTo(0,0);
+      }).catch(function(){
+        state.orderMsg.uploading = false; state.orderMsg.proofError = "Gagal mengunggah bukti transfer. Periksa koneksi internet Anda.";
+        render();
+      });
     });
     clickAc("copy-id", function(el){
       if(navigator.clipboard) navigator.clipboard.writeText(el.getAttribute("data-id")).catch(function(){});
@@ -319,17 +360,27 @@
     });
     clickAc("goto-status", function(el){ state.statusLookupId = el.getAttribute("data-id"); state.tab = "status"; lookupStatus(); });
     bindInp("status-id-input", function(v){ state.statusLookupId = v; }); clickAc("lookup-status", lookupStatus);
-    bindInp("status-proof-link", function(v){ state.statusProofLink = v; });
     clickAc("submit-proof-status", function(el){
       var id = el.getAttribute("data-id");
-      var input = document.getElementById("status-proof-link");
-      var val = input ? input.value.trim() : "";
-      if(!val){ state.statusProofError = "Mohon masukkan link bukti transfer."; render(); return; }
+      var input = document.getElementById("status-proof-file");
+      var file = input && input.files && input.files[0];
+      if(!file){ state.statusProofError = "Mohon pilih foto bukti transfer terlebih dahulu."; render(); return; }
+      if(file.size > 4*1024*1024){ state.statusProofError = "Ukuran foto terlalu besar (maksimal 4MB)."; render(); return; }
       var p = state.statusResult;
-      var project = { id: id, clientName: p.clientName, clientPhone: p.clientPhone, platforms: p.platforms, qty: p.qty, theme: p.theme, status: "Verifikasi", buktiTransferLink: val, googleDriveLink: p.googleDriveLink, price: p.price, paid: p.paid };
-      syncToSheet("update_payment", project);
-      state.statusProofError = ""; state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = val;
-      render();
+      var project = { id: id, clientName: p.clientName, clientPhone: p.clientPhone, platforms: p.platforms, qty: p.qty, theme: p.theme, googleDriveLink: p.googleDriveLink, price: p.price, paid: p.paid };
+      state.statusProofError = ""; state.statusUploading = true; render();
+      uploadProofFile(project, file).then(function(data){
+        state.statusUploading = false;
+        if(data && data.success){
+          state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = data.link;
+        } else {
+          state.statusProofError = "Gagal mengunggah bukti transfer. Coba lagi.";
+        }
+        render();
+      }).catch(function(){
+        state.statusUploading = false; state.statusProofError = "Gagal mengunggah bukti transfer. Periksa koneksi internet Anda.";
+        render();
+      });
     });
     bindNum("c-qty", function(v){ state.calc.qty = Math.max(v,1); render(); }); bindInp("c-platformsManual", function(v){ state.calc.platformsManual = v; render(); });
     clickAc("toggle-platform-calc", function(el){ var val = el.getAttribute("data-val"), idx = state.calc.platforms.indexOf(val); if(idx>-1) state.calc.platforms.splice(idx,1); else state.calc.platforms.push(val); render(); });
@@ -340,7 +391,7 @@
     var idEl = document.getElementById("status-id-input"), id = (idEl ? idEl.value : state.statusLookupId).trim().toUpperCase(); state.statusLookupId = id;
     if(!id){ state.statusError = "Harap masukkan kode pesanan."; state.statusResult = null; render(); return; }
     if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1){ state.statusError = "Sistem database belum dihubungkan. Mohon hubungi admin."; render(); return; }
-    state.statusError = "Mencari data ke database..."; state.statusResult = null; state.statusProofLink = ""; state.statusProofError = ""; render();
+    state.statusError = "Mencari data ke database..."; state.statusResult = null; state.statusProofError = ""; state.statusUploading = false; render();
     fetch(CONFIG.webAppUrl + "?id=" + encodeURIComponent(id))
       .then(function(res){ return res.json(); })
       .then(function(data){ if(data.error){ state.statusError = "Kode pesanan tidak ditemukan."; } else { state.statusError = ""; state.statusResult = data; } render(); })
