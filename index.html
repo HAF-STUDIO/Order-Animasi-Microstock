@@ -117,6 +117,7 @@
   .pay-box .bank-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 14.5px; color: var(--ink-soft); }
   .pay-box .bank-row .val { font-weight: 700; color: var(--blue-ink); }
   .verif-note { background: var(--teal-bg); border: 1px solid var(--teal-border); color: #0B6B62; padding: 14px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 600; margin: 4px 0 20px; }
+  .eta-note { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-ink); padding: 14px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 600; margin: 4px 0 20px; }
 
   .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
   @media (max-width: 480px) { .detail-grid { grid-template-columns: 1fr; gap: 14px; } }
@@ -148,9 +149,12 @@
     currency: "Rp",
     rates: {
       tier1Max: 50, tier2Max: 100,
-      tier1Price: 5000, tier2Price: 4000, tier3Price: 3000,
-      metadataFeePerPlatform: 5000
+      tier1Price: 5000, tier2Price: 4000, tier3Price: 3000
     },
+    // Estimasi waktu pengerjaan: baseHours untuk 1..unit aset pertama,
+    // lalu +stepHours setiap kelipatan "unit" aset berikutnya.
+    // Contoh (unit:20, base:24, step:4): 1-20 asset = 24 jam, 21-40 = 28 jam, 41-60 = 32 jam, dst.
+    eta: { unit: 20, baseHours: 24, stepHours: 4 },
     payment: {
       bankName: "BCA",
       accountNumber: "5410769257",
@@ -166,7 +170,7 @@
 
   var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofError: "", statusUploading: false, orderMsg: null };
 
-  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], platformsManual:"", qty:10, referenceLink:"", note:"" }; }
+  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], platformsManual:"", qty:10 }; }
   function freshCalc(){ return { qty:10, platforms:[], platformsManual:"" }; }
 
   function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
@@ -178,15 +182,26 @@
     return all;
   }
 
-  function computePrice(qty, platformCount){
-    var r = CONFIG.rates, q = Math.max(Number(qty)||0, 0), p = Math.max(Number(platformCount)||0, 0);
+  function computePrice(qty){
+    var r = CONFIG.rates, q = Math.max(Number(qty)||0, 0);
     var unitPrice = q <= r.tier1Max ? r.tier1Price : (q <= r.tier2Max ? r.tier2Price : r.tier3Price);
-    var subtotal = unitPrice * q, metadataFee = p > 1 ? p * r.metadataFeePerPlatform : 0;
+    var subtotal = unitPrice * q;
     return {
       unitPrice: unitPrice,
-      items: [{label: q + " video \u00d7 " + fmtMoney(unitPrice), value: subtotal}, {label: "Metadata (" + p + " platform)", value: metadataFee}].filter(function(it){ return it.value !== 0; }),
-      subtotal: subtotal, total: subtotal + metadataFee
+      items: [{label: q + " video \u00d7 " + fmtMoney(unitPrice), value: subtotal}],
+      subtotal: subtotal, total: subtotal
     };
+  }
+
+  function computeEtaHours(qty){
+    var e = CONFIG.eta, q = Math.max(Number(qty)||0, 1);
+    var tier = Math.ceil(q / e.unit);
+    return e.baseHours + (tier - 1) * e.stepHours;
+  }
+
+  function etaMessage(qty){
+    var hours = computeEtaHours(qty);
+    return "Estimasi waktu pengerjaan: kurang lebih " + hours + " jam kerja sejak pembayaran diverifikasi, untuk " + (qty||0) + " video.";
   }
 
   function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
@@ -259,7 +274,7 @@
     if(state.orderMsg && state.orderMsg.newId){
       var id = state.orderMsg.newId, project = state.orderMsg.project;
       if(state.orderMsg.phase === "proof_sent"){
-        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div><div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
+        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div><div class="eta-note">'+etaMessage(project.qty)+'</div><div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
       }
       var uploading = !!state.orderMsg.uploading;
       return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu unggah foto bukti transfer di bawah ini.</p>' +
@@ -271,15 +286,14 @@
         '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-ghost btn-small" data-action="goto-status" data-id="'+id+'">Lacak Nanti</button></div>' +
         '</div>';
     }
-    var priceEst = computePrice(f.qty, resolvePlatforms(f.platforms, f.platformsManual).length);
+    var priceEst = computePrice(f.qty);
     var estRows = priceEst.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
     return '<h2 class="panel-title">Formulir Pemesanan</h2><p class="panel-sub">Lengkapi detail kebutuhan aset video Anda.</p>' + (state.orderMsg && state.orderMsg.error ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.error)+'</div>' : "") +
       '<div class="card">' +
         '<div class="grid2"><div class="field"><label>Nama Lengkap</label><input type="text" id="f-clientName" value="'+escapeHtml(f.clientName)+'" placeholder="Nama Anda"></div><div class="field"><label>Nomor WhatsApp</label><input type="tel" id="f-clientPhone" value="'+escapeHtml(f.clientPhone)+'" placeholder="08xx-xxxx-xxxx"></div></div>' +
         '<div class="field"><label>Platform Microstock (pilih satu atau lebih)</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(f.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div>' +
         '<div class="field"><label>Platform lainnya</label><input type="text" id="f-platformsManual" value="'+escapeHtml(f.platformsManual)+'" placeholder="Pisahkan dengan koma bila lebih dari satu"></div>' +
-        '<div class="grid2"><div class="field"><label>Jumlah video (Qty)</label><input type="number" id="f-qty" min="1" value="'+f.qty+'"></div><div class="field"><label>Tautan referensi visual (opsional)</label><input type="url" id="f-referenceLink" value="'+escapeHtml(f.referenceLink)+'" placeholder="https://..."></div></div>' +
-        '<div class="field"><label>Catatan tambahan (opsional)</label><textarea id="f-note" placeholder="Gaya visual, warna, referensi mood, dll.">'+escapeHtml(f.note)+'</textarea></div>' +
+        '<div class="field"><label>Jumlah video (Qty)</label><input type="number" id="f-qty" min="1" value="'+f.qty+'"></div>' +
       '</div>' +
       '<div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Estimasi tagihan</div>' + estRows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(priceEst.total)+'</span></div></div>' +
       '<button class="btn btn-primary" data-action="submit-order">Kirim Pesanan</button>';
@@ -296,7 +310,8 @@
           '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="status-proof-file" accept="image/*" '+(state.statusUploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
           (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
           '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
-        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' : "") +
+        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div><div class="eta-note">'+etaMessage(p.qty)+'</div>' : "") +
+        (p.status === "Order Dikerjakan" ? '<div class="eta-note">Pesanan sedang dikerjakan. '+etaMessage(p.qty)+'</div>' : "") +
         '</div>';
 
       var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
@@ -309,9 +324,9 @@
   }
 
   function renderCalcTab(){
-    var c = state.calc, est = computePrice(c.qty, resolvePlatforms(c.platforms, c.platformsManual).length);
+    var c = state.calc, est = computePrice(c.qty);
     var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
-    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya pembuatan aset video Anda.</p><div class="card"><div class="field"><label>Kuantitas video</label><input type="number" id="c-qty" min="1" value="'+c.qty+'"></div><div class="field"><label>Platform microstock</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(c.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform-calc" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div><div class="field"><label>Platform tambahan</label><input type="text" id="c-platformsManual" value="'+escapeHtml(c.platformsManual)+'"></div><table class="tier-table"><thead><tr><th>Tier kuantitas</th><th>Harga per video</th></tr></thead><tbody><tr><td>1 &ndash; '+CONFIG.rates.tier1Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier1Price)+'</td></tr><tr><td>'+(CONFIG.rates.tier1Max+1)+' &ndash; '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier2Price)+'</td></tr><tr><td>Di atas '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier3Price)+'</td></tr></tbody></table></div><div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div><button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
+    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya pembuatan aset video Anda.</p><div class="card"><div class="field"><label>Kuantitas video</label><input type="number" id="c-qty" min="1" value="'+c.qty+'"></div><div class="field"><label>Platform microstock</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(c.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform-calc" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div><div class="field"><label>Platform tambahan</label><input type="text" id="c-platformsManual" value="'+escapeHtml(c.platformsManual)+'"></div><table class="tier-table"><thead><tr><th>Tier kuantitas</th><th>Harga per video</th></tr></thead><tbody><tr><td>1 &ndash; '+CONFIG.rates.tier1Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier1Price)+'</td></tr><tr><td>'+(CONFIG.rates.tier1Max+1)+' &ndash; '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier2Price)+'</td></tr><tr><td>Di atas '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier3Price)+'</td></tr></tbody></table></div><div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div><div class="eta-note">'+etaMessage(c.qty)+'</div><button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
   }
 
   function attachHandlers(){
@@ -322,13 +337,13 @@
     var clickAc = function(act, fn){ c.querySelectorAll('[data-action="'+act+'"]').forEach(function(el){ el.addEventListener("click", function(){ fn(el); }); }); };
 
     bindInp("f-clientName", function(v){ state.orderForm.clientName = v; }); bindInp("f-clientPhone", function(v){ state.orderForm.clientPhone = v; });
-    bindInp("f-platformsManual", function(v){ state.orderForm.platformsManual = v; render(); }); bindInp("f-referenceLink", function(v){ state.orderForm.referenceLink = v; });
-    bindInp("f-note", function(v){ state.orderForm.note = v; }); bindNum("f-qty", function(v){ state.orderForm.qty = Math.max(v,1); render(); });
+    bindInp("f-platformsManual", function(v){ state.orderForm.platformsManual = v; render(); });
+    bindNum("f-qty", function(v){ state.orderForm.qty = Math.max(v,1); render(); });
 
     clickAc("toggle-platform", function(el){ var val = el.getAttribute("data-val"), idx = state.orderForm.platforms.indexOf(val); if(idx>-1) state.orderForm.platforms.splice(idx,1); else state.orderForm.platforms.push(val); render(); });
     clickAc("submit-order", function(){
       var f = state.orderForm; if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg = {error:"Mohon lengkapi Nama dan Nomor WhatsApp."}; render(); return; }
-      var id = uid(), project = { id: id, clientName: f.clientName.trim(), clientPhone: f.clientPhone.trim(), platforms: resolvePlatforms(f.platforms, f.platformsManual), qty: f.qty, theme: "", status: "Pembayaran", buktiTransferLink: "", googleDriveLink: "", price: computePrice(f.qty, resolvePlatforms(f.platforms, f.platformsManual).length), paid: false };
+      var id = uid(), project = { id: id, clientName: f.clientName.trim(), clientPhone: f.clientPhone.trim(), platforms: resolvePlatforms(f.platforms, f.platformsManual), qty: f.qty, theme: "", status: "Pembayaran", buktiTransferLink: "", googleDriveLink: "", price: computePrice(f.qty), paid: false };
       syncToSheet("create", project); state.orderMsg = {newId:id, project: project, phase: "awaiting_payment", proofError: "", uploading: false}; render();
       window.scrollTo(0,0);
     });
