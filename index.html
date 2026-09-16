@@ -148,7 +148,7 @@
   // KONFIGURASI APLIKASI
   // =========================================================================
   var CONFIG = {
-    webAppUrl: "https://script.google.com/macros/s/AKfycbxU_AC2fVD-g4doTUZdl-xfMjtD9hSYnaozuEAfOoPMExSZIDd-18UcmjA3THLqrfjCmQ/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
+    webAppUrl: "https://script.google.com/macros/s/AKfycbz2Dj6oAm8waQccX7hN_3cXs-MfynFJWgPxrUIzHDlT6A76fguecyBrTZxP-tZoMMiXbQ/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
     businessName: "Order Animasi Microstock",
     currency: "Rp",
     rates: {
@@ -159,6 +159,11 @@
     // lalu +stepHours setiap kelipatan "unit" aset berikutnya.
     // Contoh (unit:20, base:24, step:4): 1-20 asset = 24 jam, 21-40 = 28 jam, 41-60 = 32 jam, dst.
     eta: { unit: 20, baseHours: 24, stepHours: 4 },
+    // Jam kerja aktual pengerjaan (overnight, melewati tengah malam).
+    // TIDAK ditampilkan ke customer di mana pun — hanya dipakai untuk
+    // menghitung tanggal/jam target selesai yang realistis.
+    workWindow: { startHour: 19, endHour: 2 },
+    timezoneOffsetHours: 7, // Asia/Jakarta (WIB), tidak ada DST
     payment: {
       bankName: "BCA",
       accountNumber: "5410769257",
@@ -203,6 +208,35 @@
     return e.baseHours + (tier - 1) * e.stepHours;
   }
 
+  // Menghitung tanggal/jam target selesai dengan HANYA menghitung jam yang
+  // jatuh di dalam jendela kerja aktual (mis. 19:00-02:00). Jam di luar
+  // jendela itu "dilompati". Hasilnya: estimasi jujur berdasarkan kapasitas
+  // kerja sebenarnya, tanpa perlu menyebut jam operasional ke customer.
+  function computeTargetDateInWorkHours(baseDate, hoursNeeded){
+    var w = CONFIG.workWindow, offsetMs = CONFIG.timezoneOffsetHours * 3600000;
+    var startHour = w.startHour, endHour = w.endHour; // asumsi jendela melewati tengah malam
+    var current = new Date(baseDate.getTime() + offsetMs); // representasi waktu lokal via field UTC
+    var remainingMinutes = hoursNeeded * 60;
+    var guard = 0;
+    while(remainingMinutes > 1e-6 && guard < 100000){
+      guard++;
+      var curHour = current.getUTCHours(), curMinute = current.getUTCMinutes();
+      var inWork = (curHour >= startHour) || (curHour < endHour);
+      if(inWork){
+        var minutesUntilEnd = curHour >= startHour
+          ? ((24 - curHour) + endHour) * 60 - curMinute
+          : (endHour - curHour) * 60 - curMinute;
+        var consume = Math.min(remainingMinutes, minutesUntilEnd);
+        current = new Date(current.getTime() + consume * 60000);
+        remainingMinutes -= consume;
+      } else {
+        var minutesUntilStart = (startHour - curHour) * 60 - curMinute;
+        current = new Date(current.getTime() + minutesUntilStart * 60000);
+      }
+    }
+    return new Date(current.getTime() - offsetMs);
+  }
+
   function formatTargetDate(date){
     var dateStr = date.toLocaleDateString('id-ID', { timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long', year:'numeric' });
     var timeStr = date.toLocaleTimeString('id-ID', { timeZone:'Asia/Jakarta', hour:'2-digit', minute:'2-digit', hour12:false }).replace('.', ':');
@@ -213,7 +247,7 @@
     config = config || {};
     var hours = computeEtaHours(qty);
     var base = baseIso ? new Date(baseIso) : new Date();
-    var target = new Date(base.getTime() + hours * 3600 * 1000);
+    var target = computeTargetDateInWorkHours(base, hours);
     var targetStr = formatTargetDate(target);
     var intro = config.intro || "Animasimu sedang digarap oleh tim kami!";
     var sub = config.sub || "";
