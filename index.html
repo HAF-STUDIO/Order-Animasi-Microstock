@@ -148,21 +148,26 @@
   // KONFIGURASI APLIKASI
   // =========================================================================
   var CONFIG = {
-    webAppUrl: "https://script.google.com/macros/s/AKfycbz2Dj6oAm8waQccX7hN_3cXs-MfynFJWgPxrUIzHDlT6A76fguecyBrTZxP-tZoMMiXbQ/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
+    webAppUrl: "https://script.google.com/macros/s/AKfycbzdE3FK7_rsZw98ON6iWupzT3RtWeqjI-uRNTpUyTYWowgazqKVQRYizsYBjgOI3p36/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
     businessName: "Order Animasi Microstock",
     currency: "Rp",
     rates: {
       tier1Max: 50, tier2Max: 100,
       tier1Price: 5000, tier2Price: 4000, tier3Price: 3000
     },
-    // Estimasi waktu pengerjaan: baseHours untuk 1..unit aset pertama,
-    // lalu +stepHours setiap kelipatan "unit" aset berikutnya.
-    // Contoh (unit:20, base:24, step:4): 1-20 asset = 24 jam, 21-40 = 28 jam, 41-60 = 32 jam, dst.
-    eta: { unit: 20, baseHours: 24, stepHours: 4 },
-    // Jam kerja aktual pengerjaan (overnight, melewati tengah malam).
+    // Estimasi waktu pengerjaan berbasis KECEPATAN PRODUKSI PER VIDEO (linear),
+    // bukan tabel tier. Basis: kapasitas riil 10-15 video per sesi 6 jam
+    // (19:00-01:00). Dipakai skenario paling lambat (10 video/sesi) supaya
+    // janji ETA ke customer selalu aman.
+    //   hoursPerVideo   = 6 jam / 10 video = 0.6 jam per video (36 menit)
+    //   setupBufferHours = buffer tetap per order (buka project, render, dll)
+    // Setelah beberapa order riil selesai, kalibrasi ulang:
+    //   hoursPerVideo = total jam kerja aktual / total video yang selesai
+    production: { hoursPerVideo: 0.6, setupBufferHours: 0.5 },
+    // Jam kerja aktual pengerjaan (overnight, melewati tengah malam): 19:00-01:00.
     // TIDAK ditampilkan ke customer di mana pun — hanya dipakai untuk
     // menghitung tanggal/jam target selesai yang realistis.
-    workWindow: { startHour: 19, endHour: 2 },
+    workWindow: { startHour: 19, endHour: 1 },
     timezoneOffsetHours: 7, // Asia/Jakarta (WIB), tidak ada DST
     payment: {
       bankName: "BCA",
@@ -202,14 +207,16 @@
     };
   }
 
+  // Estimasi jam pengerjaan = buffer tetap + (qty x jam per video).
+  // Linear terhadap qty, berbasis kapasitas riil, mudah dikalibrasi ulang
+  // cukup dengan mengubah CONFIG.production.hoursPerVideo.
   function computeEtaHours(qty){
-    var e = CONFIG.eta, q = Math.max(Number(qty)||0, 1);
-    var tier = Math.ceil(q / e.unit);
-    return e.baseHours + (tier - 1) * e.stepHours;
+    var p = CONFIG.production, q = Math.max(Number(qty)||0, 1);
+    return p.setupBufferHours + (q * p.hoursPerVideo);
   }
 
   // Menghitung tanggal/jam target selesai dengan HANYA menghitung jam yang
-  // jatuh di dalam jendela kerja aktual (mis. 19:00-02:00). Jam di luar
+  // jatuh di dalam jendela kerja aktual (mis. 19:00-01:00). Jam di luar
   // jendela itu "dilompati". Hasilnya: estimasi jujur berdasarkan kapasitas
   // kerja sebenarnya, tanpa perlu menyebut jam operasional ke customer.
   function computeTargetDateInWorkHours(baseDate, hoursNeeded){
@@ -252,7 +259,7 @@
     var intro = config.intro || "Animasimu sedang digarap oleh tim kami!";
     var sub = config.sub || "";
     return '<div class="eta-note">' +
-        '<div>\uD83C\uDFAC ' + intro + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong> <span style="font-weight:500;">(&plusmn;' + hours + ' jam pengerjaan)</span>.</div>' +
+        '<div>\uD83C\uDFAC ' + intro + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong> <span style="font-weight:500;">(&plusmn;' + Math.round(hours*10)/10 + ' jam pengerjaan)</span>.</div>' +
         (sub ? '<span class="eta-sub">' + escapeHtml(sub) + '</span>' : '') +
         '<div class="countdown-badge">\u23F3 <span class="countdown" data-target="' + target.toISOString() + '">menghitung...</span></div>' +
       '</div>';
