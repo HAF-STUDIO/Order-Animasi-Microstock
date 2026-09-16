@@ -117,7 +117,11 @@
   .pay-box .bank-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 14.5px; color: var(--ink-soft); }
   .pay-box .bank-row .val { font-weight: 700; color: var(--blue-ink); }
   .verif-note { background: var(--teal-bg); border: 1px solid var(--teal-border); color: #0B6B62; padding: 14px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 600; margin: 4px 0 20px; }
-  .eta-note { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-ink); padding: 14px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 600; margin: 4px 0 20px; }
+
+  .eta-note { background: linear-gradient(135deg, var(--blue-bg), #F1EEFF); border: 1px solid var(--blue-border); color: var(--blue-ink); padding: 16px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 500; margin: 4px 0 20px; }
+  .eta-note strong { font-weight: 700; }
+  .eta-note .eta-sub { display: block; font-size: 12.5px; color: #3455a8; font-weight: 500; margin-top: 6px; }
+  .countdown-badge { margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; font-weight: 700; background: rgba(255,255,255,0.7); padding: 8px 15px; border-radius: 999px; font-size: 13.5px; color: var(--blue-ink); border: 1px solid var(--blue-border); }
 
   .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
   @media (max-width: 480px) { .detail-grid { grid-template-columns: 1fr; gap: 14px; } }
@@ -144,7 +148,7 @@
   // KONFIGURASI APLIKASI
   // =========================================================================
   var CONFIG = {
-    webAppUrl: "https://script.google.com/macros/s/AKfycbz2Dj6oAm8waQccX7hN_3cXs-MfynFJWgPxrUIzHDlT6A76fguecyBrTZxP-tZoMMiXbQ/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
+    webAppUrl: "https://script.google.com/macros/s/AKfycbxU_AC2fVD-g4doTUZdl-xfMjtD9hSYnaozuEAfOoPMExSZIDd-18UcmjA3THLqrfjCmQ/exec", // <-- Wajib Tempel URL Baru Anda Di Sini
     businessName: "Order Animasi Microstock",
     currency: "Rp",
     rates: {
@@ -199,9 +203,47 @@
     return e.baseHours + (tier - 1) * e.stepHours;
   }
 
-  function etaMessage(qty){
+  function formatTargetDate(date){
+    var dateStr = date.toLocaleDateString('id-ID', { timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    var timeStr = date.toLocaleTimeString('id-ID', { timeZone:'Asia/Jakarta', hour:'2-digit', minute:'2-digit', hour12:false }).replace('.', ':');
+    return dateStr + ' pukul ' + timeStr + ' WIB';
+  }
+
+  function renderEtaBlock(qty, baseIso, config){
+    config = config || {};
     var hours = computeEtaHours(qty);
-    return "Estimasi waktu pengerjaan: kurang lebih " + hours + " jam kerja sejak pembayaran diverifikasi, untuk " + (qty||0) + " video.";
+    var base = baseIso ? new Date(baseIso) : new Date();
+    var target = new Date(base.getTime() + hours * 3600 * 1000);
+    var targetStr = formatTargetDate(target);
+    var intro = config.intro || "Animasimu sedang digarap oleh tim kami!";
+    var sub = config.sub || "";
+    return '<div class="eta-note">' +
+        '<div>\uD83C\uDFAC ' + intro + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong> <span style="font-weight:500;">(&plusmn;' + hours + ' jam pengerjaan)</span>.</div>' +
+        (sub ? '<span class="eta-sub">' + escapeHtml(sub) + '</span>' : '') +
+        '<div class="countdown-badge">\u23F3 <span class="countdown" data-target="' + target.toISOString() + '">menghitung...</span></div>' +
+      '</div>';
+  }
+
+  function tickCountdowns(){
+    document.querySelectorAll('.countdown[data-target]').forEach(function(el){
+      var target = new Date(el.getAttribute('data-target')).getTime();
+      var diff = target - Date.now();
+      if(diff <= 0){ el.textContent = "Seharusnya sudah selesai — hubungi admin untuk update terbaru."; return; }
+      var d = Math.floor(diff/86400000); diff -= d*86400000;
+      var h = Math.floor(diff/3600000); diff -= h*3600000;
+      var m = Math.floor(diff/60000); diff -= m*60000;
+      var s = Math.floor(diff/1000);
+      var pad = function(n){ return (n<10?"0":"")+n; };
+      el.textContent = (d>0 ? d + " hari " : "") + pad(h) + " jam " + pad(m) + " menit " + pad(s) + " detik lagi";
+    });
+  }
+
+  function restartCountdownTicker(){
+    if(window.__etaTicker){ clearInterval(window.__etaTicker); window.__etaTicker = null; }
+    if(document.querySelector('.countdown[data-target]')){
+      tickCountdowns();
+      window.__etaTicker = setInterval(tickCountdowns, 1000);
+    }
   }
 
   function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
@@ -266,7 +308,7 @@
     else if(state.tab === "status") html += renderStatusTab();
     else if(state.tab === "calc") html += renderCalcTab();
     html += '</main><footer class="foot">Sistem terenkripsi aman &mdash; Data Anda tersimpan secara privat.</footer>';
-    c.innerHTML = html; attachHandlers();
+    c.innerHTML = html; attachHandlers(); restartCountdownTicker();
   }
 
   function renderOrderTab(){
@@ -274,7 +316,9 @@
     if(state.orderMsg && state.orderMsg.newId){
       var id = state.orderMsg.newId, project = state.orderMsg.project;
       if(state.orderMsg.phase === "proof_sent"){
-        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div><div class="eta-note">'+etaMessage(project.qty)+'</div><div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
+        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div>' +
+          renderEtaBlock(project.qty, project.verifiedAt, { intro: "Terima kasih, bukti pembayaranmu sudah kami terima!", sub: "Estimasi ini bisa sedikit menyesuaikan setelah tim mulai proses pengerjaan." }) +
+          '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
       }
       var uploading = !!state.orderMsg.uploading;
       return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu unggah foto bukti transfer di bawah ini.</p>' +
@@ -310,8 +354,9 @@
           '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="status-proof-file" accept="image/*" '+(state.statusUploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
           (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
           '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
-        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div><div class="eta-note">'+etaMessage(p.qty)+'</div>' : "") +
-        (p.status === "Order Dikerjakan" ? '<div class="eta-note">Pesanan sedang dikerjakan. '+etaMessage(p.qty)+'</div>' : "") +
+        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' +
+          renderEtaBlock(p.qty, p.statusUpdatedAt, { intro: "Bukti pembayaranmu sedang diverifikasi tim kami.", sub: "Estimasi ini bisa sedikit menyesuaikan setelah tim mulai proses pengerjaan." }) : "") +
+        (p.status === "Order Dikerjakan" ? renderEtaBlock(p.qty, p.statusUpdatedAt, { intro: "Animasimu sedang digarap oleh tim kami!" }) : "") +
         '</div>';
 
       var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
@@ -326,7 +371,9 @@
   function renderCalcTab(){
     var c = state.calc, est = computePrice(c.qty);
     var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
-    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya pembuatan aset video Anda.</p><div class="card"><div class="field"><label>Kuantitas video</label><input type="number" id="c-qty" min="1" value="'+c.qty+'"></div><div class="field"><label>Platform microstock</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(c.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform-calc" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div><div class="field"><label>Platform tambahan</label><input type="text" id="c-platformsManual" value="'+escapeHtml(c.platformsManual)+'"></div><table class="tier-table"><thead><tr><th>Tier kuantitas</th><th>Harga per video</th></tr></thead><tbody><tr><td>1 &ndash; '+CONFIG.rates.tier1Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier1Price)+'</td></tr><tr><td>'+(CONFIG.rates.tier1Max+1)+' &ndash; '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier2Price)+'</td></tr><tr><td>Di atas '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier3Price)+'</td></tr></tbody></table></div><div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div><div class="eta-note">'+etaMessage(c.qty)+'</div><button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
+    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya pembuatan aset video Anda.</p><div class="card"><div class="field"><label>Kuantitas video</label><input type="number" id="c-qty" min="1" value="'+c.qty+'"></div><div class="field"><label>Platform microstock</label><div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){ return '<span class="chip '+(c.platforms.indexOf(p)>-1?"selected":"")+'" data-action="toggle-platform-calc" data-val="'+escapeHtml(p)+'">'+p+'</span>'; }).join("") + '</div></div><div class="field"><label>Platform tambahan</label><input type="text" id="c-platformsManual" value="'+escapeHtml(c.platformsManual)+'"></div><table class="tier-table"><thead><tr><th>Tier kuantitas</th><th>Harga per video</th></tr></thead><tbody><tr><td>1 &ndash; '+CONFIG.rates.tier1Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier1Price)+'</td></tr><tr><td>'+(CONFIG.rates.tier1Max+1)+' &ndash; '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier2Price)+'</td></tr><tr><td>Di atas '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier3Price)+'</td></tr></tbody></table></div><div class="card estimate-box"><div style="font-weight:700; color:var(--ink); margin-bottom:12px; font-size:16px;">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div>' +
+      renderEtaBlock(c.qty, null, { intro: "Simulasi jika pembayaranmu diverifikasi sekarang juga,", sub: "Waktu final tergantung kapan pembayaranmu benar-benar diverifikasi tim." }) +
+      '<button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
   }
 
   function attachHandlers(){
@@ -358,7 +405,7 @@
       uploadProofFile(project, file).then(function(data){
         state.orderMsg.uploading = false;
         if(data && data.success){
-          project.status = "Verifikasi"; project.buktiTransferLink = data.link;
+          project.status = "Verifikasi"; project.buktiTransferLink = data.link; project.verifiedAt = data.verifiedAt || new Date().toISOString();
           state.orderMsg.phase = "proof_sent";
         } else {
           state.orderMsg.proofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
@@ -387,7 +434,7 @@
       uploadProofFile(project, file).then(function(data){
         state.statusUploading = false;
         if(data && data.success){
-          state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = data.link;
+          state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = data.link; state.statusResult.statusUpdatedAt = data.verifiedAt || new Date().toISOString();
         } else {
           state.statusProofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
         }
