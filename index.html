@@ -123,6 +123,7 @@
   .eta-note { background: linear-gradient(135deg, var(--blue-bg), #F1EEFF); border: 1px solid var(--blue-border); color: var(--blue-ink); padding: 16px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 500; margin: 4px 0 20px; }
   .eta-note strong { font-weight: 700; }
   .eta-note .eta-sub { display: block; font-size: 12.5px; color: #3455a8; font-weight: 500; margin-top: 6px; }
+  .eta-note.pending { background: var(--panel-alt); border: 1px solid var(--border); color: var(--ink-soft); }
   .countdown-badge { margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; font-weight: 700; background: rgba(255,255,255,0.7); padding: 8px 15px; border-radius: 999px; font-size: 13.5px; color: var(--blue-ink); border: 1px solid var(--blue-border); }
 
   .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
@@ -154,11 +155,20 @@
   // =========================================================================
   var CONFIG = {
     // Exec URL deployment Apps Script yang terikat ke spreadsheet "Database Order Animasi" (data asli).
-    webAppUrl: "https://script.google.com/macros/s/AKfycbxqHmgB5KtphdJNCPle8RzPODCG35iTCz9R0aUb-c4pZKhhQV7D0mzqNOi0CxphX5SbEw/exec",
+    webAppUrl: "https://script.google.com/macros/s/AKfycbyA60xBKq5yFI_0pTFTwi3pYCkrjSpbXPcQXFElqH96Za5Mt-hA3BX8GfWGgS01eZUwsw/exec",
     businessName: "Order Animasi Microstock",
     currency: "Rp",
-    rates: { tier1Max: 50, tier2Max: 100, tier1Price: 5000, tier2Price: 5000, tier3Price: 5000 },
-    production: { videosPerDay: 30, workWindowStartHour: 19, workWindowEndHour: 1, setupBufferHours: 0.5 },
+    // Skema paket tetap. Qty di UI HANYA bisa memilih salah satu paket ini
+    // atau mode "Pesanan Besar" (>30 video, flat overflowPricePerVideo).
+    rates: {
+      packages: [
+        { qty: 10, price: 75000, label: "Starter" },
+        { qty: 20, price: 120000, label: "Standar" },
+        { qty: 30, price: 150000, label: "Maksimal" }
+      ],
+      overflowPricePerVideo: 5000
+    },
+    production: { videosPerDay: 30, workWindowStartHour: 19, workWindowEndHour: 0, setupBufferHours: 0.5 },
     timezoneOffsetHours: 7, // Asia/Jakarta (WIB), tidak ada DST
     maxProofSizeBytes: 4 * 1024 * 1024,
     payment: {
@@ -176,46 +186,44 @@
 
   var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofError: "", statusUploading: false, orderMsg: null };
 
-  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, _pendingId:null, _submitting:false }; }
-  function freshCalc(){ return { qty:10, platforms:[], _queueFetched:false, _queueLoading:false, queuedVideosAhead:0 }; }
+  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, isCustom:false, _pendingId:null, _submitting:false }; }
+  function freshCalc(){ return { qty:10, isCustom:false, platforms:[], _queueFetched:false, _queueLoading:false, queuedVideosAhead:0 }; }
 
   function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
 
-  function isFlatRate(){
-    var r = CONFIG.rates; return r.tier1Price === r.tier2Price && r.tier2Price === r.tier3Price;
-  }
-
+  // ---------------------------------------------------------------------
+  // HARGA — SKEMA PAKET TETAP (harus selaras dengan computePriceBackend
+  // di Code.gs; backend tetap jadi sumber kebenaran final saat submit).
+  // ---------------------------------------------------------------------
   function computePrice(qty){
-    var r = CONFIG.rates, q = Math.max(Number(qty)||0, 0);
-    var unitPrice = q <= r.tier1Max ? r.tier1Price : (q <= r.tier2Max ? r.tier2Price : r.tier3Price);
-    var subtotal = unitPrice * q;
-    return {
-      unitPrice: unitPrice,
-      items: [{label: q + " video \u00d7 " + fmtMoney(unitPrice), value: subtotal}],
-      subtotal: subtotal, total: subtotal
-    };
+    var q = Math.max(Math.round(Number(qty)||0), 0);
+    var pkgs = CONFIG.rates.packages;
+    var maxPkgQty = pkgs[pkgs.length-1].qty;
+    if (q > maxPkgQty) {
+      var total = q * CONFIG.rates.overflowPricePerVideo;
+      return { total: total, isCustom: true, items: [{ label: q + " video \u00d7 " + fmtMoney(CONFIG.rates.overflowPricePerVideo), value: total }] };
+    }
+    var match = pkgs.filter(function(p){ return p.qty === q; })[0] || pkgs.filter(function(p){ return q <= p.qty; })[0] || pkgs[pkgs.length-1];
+    return { total: match.price, isCustom: false, items: [{ label: "Paket " + match.label + " (" + match.qty + " video)", value: match.price }] };
   }
 
-  function workWindowHours(){
+  // ---------------------------------------------------------------------
+  // SIMULASI ETA (HANYA untuk tab Kalkulator, sebelum order dibuat).
+  // Ini murni perkiraan kasar "kalau dibayar sekarang" — TIDAK dipakai
+  // untuk order yang sudah berjalan. Tanggal selesai yang MENGIKAT untuk
+  // order nyata selalu datang dari backend (field estimasiSelesai),
+  // dihitung sekali oleh admin saat mencentang "Lunas".
+  // ---------------------------------------------------------------------
+  function workWindowHoursSim(){
     var p = CONFIG.production;
     return p.workWindowEndHour > p.workWindowStartHour ? (p.workWindowEndHour - p.workWindowStartHour) : ((24 - p.workWindowStartHour) + p.workWindowEndHour);
   }
-  function hoursPerVideo(){ return workWindowHours() / Math.max(CONFIG.production.videosPerDay, 1); }
-
-  // Estimasi jam pengerjaan = buffer tetap + (antrian video di depan + qty
-  // order ini) x jam per video. Antrian video di depan datang dari backend
-  // (video dari order lain yang masih aktif), supaya estimasi tetap jujur
-  // walau klien makin banyak, bukan cuma menghitung qty order sendiri.
-  function computeEtaHours(qty, queuedAhead){
+  function hoursPerVideoSim(){ return workWindowHoursSim() / Math.max(CONFIG.production.videosPerDay, 1); }
+  function simulateEtaHours(qty, queuedAhead){
     var p = CONFIG.production, q = Math.max(Number(qty)||0, 1), ahead = Math.max(Number(queuedAhead)||0, 0);
-    return p.setupBufferHours + (ahead + q) * hoursPerVideo();
+    return p.setupBufferHours + (ahead + q) * hoursPerVideoSim();
   }
-
-  // Menghitung tanggal/jam target selesai dengan HANYA menghitung jam yang
-  // jatuh di dalam jendela kerja aktual. Jam di luar jendela itu "dilompati".
-  // TIDAK ditampilkan ke customer di mana pun secara eksplisit sebagai jam
-  // operasional — hanya dipakai untuk menghitung tanggal target yang realistis.
-  function computeTargetDateInWorkHours(baseDate, hoursNeeded){
+  function simulateTargetDate(baseDate, hoursNeeded){
     var p = CONFIG.production, offsetMs = CONFIG.timezoneOffsetHours * 3600000;
     var startHour = p.workWindowStartHour, endHour = p.workWindowEndHour;
     var current = new Date(baseDate.getTime() + offsetMs);
@@ -224,16 +232,14 @@
     while(remainingMinutes > 1e-6 && guard < 100000){
       guard++;
       var curHour = current.getUTCHours(), curMinute = current.getUTCMinutes();
-      var inWork = (curHour >= startHour) || (curHour < endHour);
+      var inWork = endHour > startHour ? (curHour >= startHour && curHour < endHour) : (curHour >= startHour || curHour < endHour);
       if(inWork){
-        var minutesUntilEnd = curHour >= startHour
-          ? ((24 - curHour) + endHour) * 60 - curMinute
-          : (endHour - curHour) * 60 - curMinute;
+        var minutesUntilEnd = endHour > startHour ? (endHour - curHour) * 60 - curMinute : ((24 - curHour) + endHour) * 60 - curMinute;
         var consume = Math.min(remainingMinutes, minutesUntilEnd);
         current = new Date(current.getTime() + consume * 60000);
         remainingMinutes -= consume;
       } else {
-        var minutesUntilStart = (startHour - curHour) * 60 - curMinute;
+        var minutesUntilStart = curHour < startHour ? (startHour - curHour) * 60 - curMinute : ((24 - curHour) + startHour) * 60 - curMinute;
         current = new Date(current.getTime() + minutesUntilStart * 60000);
       }
     }
@@ -246,19 +252,32 @@
     return dateStr + ' pukul ' + timeStr + ' WIB';
   }
 
-  function renderEtaBlock(qty, baseIso, queuedAhead, config){
-    config = config || {};
-    var hours = computeEtaHours(qty, queuedAhead);
-    var base = baseIso ? new Date(baseIso) : new Date();
-    var target = computeTargetDateInWorkHours(base, hours);
+  // Dipakai HANYA di tab Kalkulator: simulasi kasar, bukan janji pasti.
+  function renderEtaSimulation(qty, queuedAhead){
+    var hours = simulateEtaHours(qty, queuedAhead);
+    var target = simulateTargetDate(new Date(), hours);
     var targetStr = formatTargetDate(target);
-    var intro = config.intro || "Animasimu sedang digarap oleh tim kami!";
-    var sub = config.sub || "";
+    var queueNote = (queuedAhead && queuedAhead > 0) ? ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang sudah lunas & sedang dikerjakan.") : "";
+    return '<div class="eta-note">' +
+        '<div>\uD83C\uDFAC Simulasi: jika pembayaranmu dikonfirmasi admin sekarang juga, targetnya sekitar <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
+        (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
+        '<span class="eta-sub">Tanggal final akan dihitung ulang & dikunci otomatis saat admin benar-benar mengonfirmasi pembayaranmu.</span>' +
+      '</div>';
+  }
+
+  // Dipakai di tab Lacak Status untuk order yang SUDAH LUNAS & dikunci
+  // (status "Order Dikerjakan") — tanggalnya PASTI dari backend, bukan
+  // dihitung ulang di browser klien.
+  function renderEtaLocked(targetIso, queuedAhead){
+    if(!targetIso){
+      return '<div class="eta-note pending">\u23F3 Tanggal target selesai akan muncul otomatis di sini setelah admin mengonfirmasi pembayaranmu.</div>';
+    }
+    var target = new Date(targetIso);
+    var targetStr = formatTargetDate(target);
     var queueNote = (queuedAhead && queuedAhead > 0) ? ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang lebih dulu masuk.") : "";
     return '<div class="eta-note">' +
-        '<div>\uD83C\uDFAC ' + intro + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong> <span style="font-weight:500;">(&plusmn;' + Math.round(hours*10)/10 + ' jam pengerjaan)</span>.</div>' +
+        '<div>\uD83C\uDFAC Animasimu sedang digarap oleh tim kami! Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
         (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
-        (sub ? '<span class="eta-sub">' + escapeHtml(sub) + '</span>' : '') +
         '<div class="countdown-badge">\u23F3 <span class="countdown" data-target="' + target.toISOString() + '">menghitung...</span></div>' +
       '</div>';
   }
@@ -302,6 +321,24 @@
     }).join("") + '</div>';
   }
 
+  // Chip pemilihan paket. targetState: "order" atau "calc" -> menentukan
+  // action data-attribute supaya handler tahu form mana yang diubah.
+  function packageChipsHtml(currentQty, isCustom, targetState){
+    var action = targetState === "calc" ? "pick-package-calc" : "pick-package";
+    var chips = CONFIG.rates.packages.map(function(p){
+      var sel = (!isCustom && currentQty === p.qty) ? "selected" : "";
+      return '<span class="chip '+sel+'" data-action="'+action+'" data-qty="'+p.qty+'">'+escapeHtml(p.label)+' ('+p.qty+' Video) — '+fmtMoney(p.price)+'</span>';
+    }).join("");
+    chips += '<span class="chip '+(isCustom?"selected":"")+'" data-action="'+action+'" data-qty="custom">Pesanan Besar (&gt;30 Video)</span>';
+    return '<div class="chip-group">' + chips + '</div>';
+  }
+
+  function customQtyFieldHtml(qty, inputId){
+    return '<div class="field"><label>Jumlah video (minimal 31)</label>' +
+      '<input type="number" id="'+inputId+'" min="31" value="'+qty+'">' +
+      '<div class="field-note">Rp'+CONFIG.rates.overflowPricePerVideo.toLocaleString("id-ID")+'/video, dikerjakan bertahap sesuai kapasitas harian.</div></div>';
+  }
+
   function readFileAsBase64(file){
     return new Promise(function(resolve, reject){
       var reader = new FileReader();
@@ -337,6 +374,9 @@
     }).catch(function(){ /* pakai nilai default kalau gagal, tidak masalah */ });
   }
 
+  // Antrean "riil" (jumlah video dari order yang SUDAH LUNAS & sedang
+  // dikerjakan) — dipakai untuk simulasi di tab Kalkulator supaya calon
+  // klien punya gambaran jujur, bukan janji pasti.
   function fetchQueueForCalc(){
     if(state.calc._queueFetched || state.calc._queueLoading) return;
     if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
@@ -366,7 +406,7 @@
       var id = state.orderMsg.newId, project = state.orderMsg.project;
       if(state.orderMsg.phase === "proof_sent"){
         return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div>' +
-          renderEtaBlock(project.qty, project.verifiedAt, project.queuedVideosAhead, { intro: "Terima kasih, bukti pembayaranmu sudah kami terima!", sub: "Estimasi ini bisa sedikit menyesuaikan setelah tim mulai proses pengerjaan." }) +
+          '<div class="eta-note pending">\u23F3 Setelah admin mengonfirmasi pembayaranmu, jadwal pengerjaan akan langsung terkunci dan tanggal target selesai muncul otomatis di halaman Lacak Status.</div>' +
           '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
       }
       var uploading = !!state.orderMsg.uploading;
@@ -386,7 +426,8 @@
       '<div class="card">' +
         '<div class="grid2"><div class="field"><label>Nama Lengkap</label><input type="text" id="f-clientName" value="'+escapeHtml(f.clientName)+'" placeholder="Nama Anda"></div><div class="field"><label>Nomor WhatsApp</label><input type="tel" id="f-clientPhone" value="'+escapeHtml(f.clientPhone)+'" placeholder="08xx-xxxx-xxxx"></div></div>' +
         '<div class="field"><label>Platform Microstock</label>' + platformChipsHtml(f.platforms, "toggle-platform") + '</div>' +
-        '<div class="field"><label>Jumlah video (Qty)</label><input type="number" id="f-qty" min="1" value="'+f.qty+'"></div>' +
+        '<div class="field"><label>Pilih Paket</label>' + packageChipsHtml(f.qty, f.isCustom, "order") + '</div>' +
+        (f.isCustom ? customQtyFieldHtml(f.qty, "f-qty-custom") : "") +
       '</div>' +
       '<div class="card estimate-box"><div class="box-title">Estimasi tagihan</div>' + estRows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(priceEst.total)+'</span></div></div>' +
       '<button class="btn btn-primary" data-action="submit-order" '+(submitting?"disabled":"")+'>'+(submitting?"Mengirim...":"Kirim Pesanan")+'</button>';
@@ -404,8 +445,8 @@
           (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
           '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
         (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' +
-          renderEtaBlock(p.qty, p.statusUpdatedAt, p.queuedVideosAhead, { intro: "Bukti pembayaranmu sedang diverifikasi tim kami.", sub: "Estimasi ini bisa sedikit menyesuaikan setelah tim mulai proses pengerjaan." }) : "") +
-        (p.status === "Order Dikerjakan" ? renderEtaBlock(p.qty, p.statusUpdatedAt, p.queuedVideosAhead, { intro: "Animasimu sedang digarap oleh tim kami!" }) : "") +
+          '<div class="eta-note pending">\u23F3 Setelah admin mengonfirmasi pembayaranmu, jadwal pengerjaan akan langsung terkunci dan tanggal target selesai muncul otomatis di sini.</div>' : "") +
+        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queuedVideosAhead) : "") +
         '</div>';
 
       var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
@@ -420,13 +461,14 @@
   function renderCalcTab(){
     var c = state.calc, est = computePrice(c.qty);
     var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
-    var priceBlock = isFlatRate()
-      ? '<div class="flat-rate-note"><span>Harga flat semua kuantitas</span><span>'+fmtMoney(CONFIG.rates.tier1Price)+' / video</span></div>'
-      : '<table class="tier-table"><thead><tr><th>Tier kuantitas</th><th>Harga per video</th></tr></thead><tbody><tr><td>1 &ndash; '+CONFIG.rates.tier1Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier1Price)+'</td></tr><tr><td>'+(CONFIG.rates.tier1Max+1)+' &ndash; '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier2Price)+'</td></tr><tr><td>Di atas '+CONFIG.rates.tier2Max+' video</td><td>'+fmtMoney(CONFIG.rates.tier3Price)+'</td></tr></tbody></table>';
     var queuedAhead = c._queueFetched ? c.queuedVideosAhead : 0;
-    var queueSub = c._queueLoading ? "Sedang mengecek antrian order aktif saat ini..." : "Waktu final tergantung kapan pembayaranmu benar-benar diverifikasi tim.";
-    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya pembuatan aset video Anda.</p><div class="card"><div class="field"><label>Kuantitas video</label><input type="number" id="c-qty" min="1" value="'+c.qty+'"></div><div class="field"><label>Platform microstock</label>' + platformChipsHtml(c.platforms, "toggle-platform-calc") + '</div>' + priceBlock + '</div><div class="card estimate-box"><div class="box-title">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div>' +
-      renderEtaBlock(c.qty, null, queuedAhead, { intro: "Simulasi jika pembayaranmu diverifikasi sekarang juga,", sub: queueSub }) +
+    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya &amp; perkiraan waktu pengerjaan aset video Anda.</p>' +
+      '<div class="card"><div class="field"><label>Pilih Paket</label>' + packageChipsHtml(c.qty, c.isCustom, "calc") + '</div>' +
+      (c.isCustom ? customQtyFieldHtml(c.qty, "c-qty-custom") : "") +
+      '<div class="field"><label>Platform microstock</label>' + platformChipsHtml(c.platforms, "toggle-platform-calc") + '</div></div>' +
+      '<div class="card estimate-box"><div class="box-title">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div>' +
+      (c._queueLoading ? '<div class="msg msg-info">Sedang mengecek antrian order aktif saat ini...</div>' : "") +
+      renderEtaSimulation(c.qty, queuedAhead) +
       '<button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
   }
 
@@ -438,14 +480,34 @@
     var clickAc = function(act, fn){ c.querySelectorAll('[data-action="'+act+'"]').forEach(function(el){ el.addEventListener("click", function(){ fn(el); }); }); };
 
     bindInp("f-clientName", function(v){ state.orderForm.clientName = v; }); bindInp("f-clientPhone", function(v){ state.orderForm.clientPhone = v; });
-    bindNum("f-qty", function(v){ state.orderForm.qty = Math.max(v,1); render(); });
 
     clickAc("toggle-platform", function(el){ var val = el.getAttribute("data-val"), idx = state.orderForm.platforms.indexOf(val); if(idx>-1) state.orderForm.platforms.splice(idx,1); else state.orderForm.platforms.push(val); render(); });
+
+    // --- Pemilihan paket (tab Buat Pesanan) ---
+    clickAc("pick-package", function(el){
+      var val = el.getAttribute("data-qty");
+      var f = state.orderForm;
+      if(val === "custom"){ f.isCustom = true; f.qty = 50; }
+      else { f.isCustom = false; f.qty = Number(val); }
+      render();
+    });
+    bindNum("f-qty-custom", function(v){ state.orderForm.qty = Math.max(Math.round(v), 31); render(); });
+
+    // --- Pemilihan paket (tab Kalkulator) ---
+    clickAc("pick-package-calc", function(el){
+      var val = el.getAttribute("data-qty");
+      var cst = state.calc;
+      if(val === "custom"){ cst.isCustom = true; cst.qty = 50; }
+      else { cst.isCustom = false; cst.qty = Number(val); }
+      render();
+    });
+    bindNum("c-qty-custom", function(v){ state.calc.qty = Math.max(Math.round(v), 31); render(); });
 
     clickAc("submit-order", function(el){
       var f = state.orderForm;
       if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg = {error:"Mohon lengkapi Nama dan Nomor WhatsApp."}; render(); return; }
       if(!f.platforms.length){ state.orderMsg = {error:"Mohon pilih minimal satu platform microstock."}; render(); return; }
+      if(f.isCustom && (!f.qty || f.qty < 31)){ state.orderMsg = {error:"Untuk Pesanan Besar, jumlah video minimal 31."}; render(); return; }
       if(!f._pendingId) f._pendingId = uid();
       var id = f._pendingId;
       var price = computePrice(f.qty);
@@ -485,7 +547,6 @@
         state.orderMsg.uploading = false;
         if(data && data.success){
           project.status = "Verifikasi"; project.buktiTransferLink = data.link; project.verifiedAt = data.verifiedAt || new Date().toISOString();
-          project.queuedVideosAhead = data.queuedVideosAhead || 0;
           state.orderMsg.phase = "proof_sent";
         } else {
           state.orderMsg.proofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
@@ -513,7 +574,6 @@
         state.statusUploading = false;
         if(data && data.success){
           state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = data.link; state.statusResult.statusUpdatedAt = data.verifiedAt || new Date().toISOString();
-          state.statusResult.queuedVideosAhead = data.queuedVideosAhead || 0;
         } else {
           state.statusProofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
         }
@@ -523,9 +583,8 @@
         render();
       });
     });
-    bindNum("c-qty", function(v){ state.calc.qty = Math.max(v,1); render(); });
     clickAc("toggle-platform-calc", function(el){ var val = el.getAttribute("data-val"), idx = state.calc.platforms.indexOf(val); if(idx>-1) state.calc.platforms.splice(idx,1); else state.calc.platforms.push(val); render(); });
-    clickAc("use-estimate-for-order", function(){ state.orderForm = freshOrderForm(); state.orderForm.qty = state.calc.qty; state.orderForm.platforms = state.calc.platforms.slice(); state.tab = "order"; render(); window.scrollTo(0,0); });
+    clickAc("use-estimate-for-order", function(){ state.orderForm = freshOrderForm(); state.orderForm.qty = state.calc.qty; state.orderForm.isCustom = state.calc.isCustom; state.orderForm.platforms = state.calc.platforms.slice(); state.tab = "order"; render(); window.scrollTo(0,0); });
   }
 
   function lookupStatus(){
