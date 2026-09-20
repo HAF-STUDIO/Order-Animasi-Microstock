@@ -137,6 +137,20 @@
     .card { padding: 20px; border-radius: var(--radius-md); }
     h2.panel-title { font-size: 20px; }
   }
+
+  /* [BARU] Promo, repeat order, klaim garansi */
+  .promo-row { display: flex; gap: 10px; }
+  .promo-row input { flex: 1; text-transform: uppercase; }
+  .promo-row input::placeholder { text-transform: none; }
+  .promo-msg { font-size: 13px; font-weight: 600; margin-top: 8px; }
+  .promo-msg.ok { color: var(--teal); }
+  .promo-msg.err { color: #9C2A1D; }
+  .estimate-row.discount { color: var(--teal); font-weight: 600; }
+  .repeat-note { background: var(--teal-bg); border: 1px solid var(--teal-border); color: #0B6B62; padding: 14px 18px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; margin: 0 0 18px; }
+  .repeat-note strong { font-weight: 700; }
+  .file-picked { font-size: 12.5px; color: var(--teal); font-weight: 600; margin-top: 6px; word-break: break-all; }
+  .claim-steps { margin: 0 0 20px; padding-left: 20px; color: var(--ink-soft); font-size: 14px; }
+  .claim-steps li { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -184,9 +198,12 @@
 
   function uid(){ return "PRJ-" + Date.now().toString(36).toUpperCase().slice(-4) + Math.random().toString(36).toUpperCase().slice(2,6); }
 
-  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofError: "", statusUploading: false, orderMsg: null };
+  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofError: "", statusUploading: false, orderMsg: null, warranty: freshWarranty() };
 
-  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, isCustom:false, _pendingId:null, _submitting:false }; }
+  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, isCustom:false, _pendingId:null, _submitting:false, promoCode:"", promo:null, promoMsg:null, promoLoading:false }; }
+  function freshWarranty(){ return { id:"", rejectedFile:"", file:null, submitting:false, error:"", done:null }; }
+  // [BARU] Batas bawah "Pesanan Besar" = qty paket terbesar + 1 (ikut sheet Pengaturan, bukan angka 31 tetap)
+  function customMinQty(){ var p = CONFIG.rates.packages; return p[p.length-1].qty + 1; }
   function freshCalc(){ return { qty:10, isCustom:false, platforms:[], _queueFetched:false, _queueLoading:false, queuedVideosAhead:0 }; }
 
   function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
@@ -306,11 +323,84 @@
 
   function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
-  function paymentBoxHtml(total){
+  // [BARU] Semua komunikasi ke backend memakai fetch() murni. POST dikirim sebagai
+  // text/plain agar TIDAK memicu preflight CORS ke Google Apps Script.
+  function apiPost(payload){
+    return fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) }).then(function(res){ return res.json(); });
+  }
+  function apiGet(params){
+    var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }).join("&");
+    return fetch(CONFIG.webAppUrl + "?" + qs).then(function(res){ return res.json(); });
+  }
+
+  function promoFieldHtml(f){
+    var msg = f.promoMsg ? '<div class="promo-msg '+(f.promo?"ok":"err")+'">'+escapeHtml(f.promoMsg)+'</div>' : "";
+    return '<div class="field"><label>Kode Promo <span style="font-weight:400; color:var(--ink-faint);">(opsional)</span></label>' +
+      '<div class="promo-row"><input type="text" id="f-promo" value="'+escapeHtml(f.promoCode)+'" placeholder="Masukkan kode promo" autocomplete="off" autocapitalize="characters">' +
+      '<button class="btn btn-ghost btn-small" data-action="apply-promo" '+(f.promoLoading?"disabled":"")+'>'+(f.promoLoading?"Mengecek...":"Terapkan")+'</button></div>' + msg + '</div>';
+  }
+  function discountRowHtml(price){
+    if(!price || !price.discount) return "";
+    return '<div class="estimate-row discount"><span>Promo'+(price.promoCode?" "+escapeHtml(price.promoCode):"")+'</span><span>- '+fmtMoney(price.discount)+'</span></div>';
+  }
+  function repeatNoteHtml(project){
+    if(!project || !project.isRepeat) return "";
+    return '<div class="repeat-note">\uD83D\uDC4B <strong>Selamat datang kembali!</strong> Hasil pesanan ini akan masuk ke folder Google Drive yang sama dengan pesanan Anda sebelumnya.</div>';
+  }
+  function warrantyLinkHtml(p){
+    if(!p.paid || p.status === "Dibatalkan" || (p.status !== "Order Dikerjakan" && p.status !== "Selesai")) return "";
+    return '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="goto-warranty" data-id="'+escapeHtml(p.id)+'">Ajukan klaim garansi</button></div>';
+  }
+
+  function renderWarrantyTab(){
+    var w = state.warranty;
+    if(w.done){
+      return '<h2 class="panel-title">Klaim Garansi Terkirim</h2><p class="panel-sub">Tim kami akan memeriksa bukti penolakan dan menghubungi Anda lewat WhatsApp.</p>' +
+        '<div class="card"><div class="id-display">'+escapeHtml(w.done.id)+'</div>' +
+        '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(w.done.fileName)+'</strong> sudah tercatat dengan status <strong>'+escapeHtml(w.done.status)+'</strong>.</div>' +
+        '<div style="text-align:center;"><button class="btn btn-ghost" data-action="warranty-new">Ajukan klaim untuk file lain</button></div></div>';
+    }
+    var busy = w.submitting;
+    return '<h2 class="panel-title">Klaim Garansi</h2><p class="panel-sub">Video ditolak Adobe Stock atau Shutterstock? Kirim buktinya di sini.</p>' +
+      (w.error ? '<div class="msg msg-error">'+escapeHtml(w.error)+'</div>' : "") +
+      '<div class="card">' +
+        '<ol class="claim-steps"><li>Masukkan kode pesanan Anda.</li><li>Tulis nama file video yang ditolak.</li><li>Unggah screenshot penolakan yang memperlihatkan nama file dan alasannya.</li></ol>' +
+        '<div class="grid2"><div class="field"><label>Kode Pesanan (PRJ-XXXX)</label><input type="text" id="w-id" value="'+escapeHtml(w.id)+'" placeholder="PRJ-AB12CD34" autocomplete="off"></div>' +
+        '<div class="field"><label>Nama File yang Ditolak</label><input type="text" id="w-file-name" value="'+escapeHtml(w.rejectedFile)+'" placeholder="anim_01.mp4" autocomplete="off"></div></div>' +
+        '<div class="field"><label>Screenshot Penolakan</label><input type="file" id="warranty-file" accept="image/*" '+(busy?"disabled":"")+'>' +
+          (w.file ? '<div class="file-picked">Dipilih: '+escapeHtml(w.file.name)+' ('+Math.round(w.file.size/1024)+' KB)</div>' : "") +
+          '<div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
+        '<button class="btn btn-primary" data-action="submit-warranty" '+(busy?"disabled":"")+'>'+(busy?"Mengirim klaim...":"Kirim Klaim")+'</button>' +
+      '</div>';
+  }
+
+  function submitWarranty(){
+    var w = state.warranty;
+    var input = document.getElementById("warranty-file");
+    var file = (input && input.files && input.files[0]) || w.file;
+    w.id = (w.id||"").trim().toUpperCase(); w.rejectedFile = (w.rejectedFile||"").trim();
+    if(!w.id || !w.rejectedFile){ w.error = "Kode pesanan dan nama file yang ditolak wajib diisi."; render(); return; }
+    if(!file){ w.error = "Mohon unggah screenshot penolakan dari Adobe Stock / Shutterstock."; render(); return; }
+    if(file.size > CONFIG.maxProofSizeBytes){ w.file = file; w.error = "Ukuran screenshot terlalu besar (maksimal 4MB)."; render(); return; }
+    w.file = file; w.error = ""; w.submitting = true; render();
+    readFileAsBase64(file).then(function(base64){
+      return apiPost({ action:"warranty_claim", id:w.id, rejectedFile:w.rejectedFile, proofFileName:file.name, mimeType:file.type || "image/jpeg", fileData:base64 });
+    }).then(function(data){
+      w.submitting = false;
+      if(data && data.success){ w.done = data.claim; w.file = null; }
+      else { w.error = (data && (data.message || data.error)) || "Klaim gagal dikirim. Silakan coba lagi."; }
+      render(); window.scrollTo(0,0);
+    }).catch(function(){
+      w.submitting = false; w.error = "Gagal terhubung ke server. Periksa koneksi internet Anda, lalu coba lagi."; render();
+    });
+  }
+
+  function paymentBoxHtml(total, discount, promoCode){
     return '<div class="pay-box"><div class="pay-title">Instruksi Pembayaran</div>' +
       '<div class="bank-row"><span>Bank</span><span class="val">'+escapeHtml(CONFIG.payment.bankName)+'</span></div>' +
       '<div class="bank-row"><span>No. Rekening</span><span class="val">'+escapeHtml(CONFIG.payment.accountNumber)+'</span></div>' +
       '<div class="bank-row"><span>Atas Nama</span><span class="val">'+escapeHtml(CONFIG.payment.accountName)+'</span></div>' +
+      (discount ? '<div class="bank-row"><span>Potongan promo'+(promoCode?' ('+escapeHtml(promoCode)+')':'')+'</span><span class="val">- '+fmtMoney(discount)+'</span></div>' : '') +
       '<div class="bank-row"><span>Total Tagihan</span><span class="val">'+fmtMoney(total)+'</span></div>' +
       '</div>';
   }
@@ -329,13 +419,13 @@
       var sel = (!isCustom && currentQty === p.qty) ? "selected" : "";
       return '<span class="chip '+sel+'" data-action="'+action+'" data-qty="'+p.qty+'">'+escapeHtml(p.label)+' ('+p.qty+' Video) — '+fmtMoney(p.price)+'</span>';
     }).join("");
-    chips += '<span class="chip '+(isCustom?"selected":"")+'" data-action="'+action+'" data-qty="custom">Pesanan Besar (&gt;30 Video)</span>';
+    chips += '<span class="chip '+(isCustom?"selected":"")+'" data-action="'+action+'" data-qty="custom">Pesanan Besar (&gt;'+(customMinQty()-1)+' Video)</span>';
     return '<div class="chip-group">' + chips + '</div>';
   }
 
   function customQtyFieldHtml(qty, inputId){
-    return '<div class="field"><label>Jumlah video (minimal 31)</label>' +
-      '<input type="number" id="'+inputId+'" min="31" value="'+qty+'">' +
+    return '<div class="field"><label>Jumlah video (minimal '+customMinQty()+')</label>' +
+      '<input type="number" id="'+inputId+'" min="'+customMinQty()+'" value="'+qty+'">' +
       '<div class="field-note">Rp'+CONFIG.rates.overflowPricePerVideo.toLocaleString("id-ID")+'/video, dikerjakan bertahap sesuai kapasitas harian.</div></div>';
   }
 
@@ -391,11 +481,12 @@
   function render(){
     var c = document.getElementById("content");
     var html = '<header class="top"><div class="top-row"><div><p class="brand-name">'+escapeHtml(CONFIG.businessName)+'</p><p class="tagline">Pemesanan &amp; pelacakan status proyek</p></div><div class="frame-mark"><span class="dot"></span>Sistem Online</div></div>' +
-      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button></nav></header>';
+      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button><button data-tab="warranty" class="'+(state.tab==="warranty"?"active":"")+'">Klaim Garansi</button></nav></header>';
     html += '<main>';
     if(state.tab === "order") html += renderOrderTab();
     else if(state.tab === "status") html += renderStatusTab();
     else if(state.tab === "calc") html += renderCalcTab();
+    else if(state.tab === "warranty") html += renderWarrantyTab(); // [BARU]
     html += '</main><footer class="foot">Sistem terenkripsi aman &mdash; Data Anda tersimpan secara privat.</footer>';
     c.innerHTML = html; attachHandlers(); restartCountdownTicker();
   }
@@ -412,7 +503,7 @@
       var uploading = !!state.orderMsg.uploading;
       return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu unggah foto bukti transfer di bawah ini.</p>' +
         '<div class="card"><div class="id-display">'+id+'</div>' +
-        paymentBoxHtml(project.price.total) +
+        repeatNoteHtml(project) + paymentBoxHtml(project.price.total, project.discount, project.promoCode) +
         '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="proof-file-input" accept="image/*" '+(uploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
         (state.orderMsg.proofError ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.proofError)+'</div>' : "") +
         '<button class="btn btn-primary" data-action="submit-proof" '+(uploading?"disabled":"")+'>'+(uploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' +
@@ -420,6 +511,8 @@
         '</div>';
     }
     var priceEst = computePrice(f.qty);
+    var promoDiscount = f.promo ? Math.min(f.promo.discount, priceEst.total) : 0; // [BARU] pratinjau; backend tetap yang final
+    var finalTotal = priceEst.total - promoDiscount;
     var estRows = priceEst.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
     var submitting = !!f._submitting;
     return '<h2 class="panel-title">Formulir Pemesanan</h2><p class="panel-sub">Lengkapi detail kebutuhan aset video Anda.</p>' + (state.orderMsg && state.orderMsg.error ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.error)+'</div>' : "") +
@@ -428,8 +521,9 @@
         '<div class="field"><label>Platform Microstock</label>' + platformChipsHtml(f.platforms, "toggle-platform") + '</div>' +
         '<div class="field"><label>Pilih Paket</label>' + packageChipsHtml(f.qty, f.isCustom, "order") + '</div>' +
         (f.isCustom ? customQtyFieldHtml(f.qty, "f-qty-custom") : "") +
+        promoFieldHtml(f) +
       '</div>' +
-      '<div class="card estimate-box"><div class="box-title">Estimasi tagihan</div>' + estRows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(priceEst.total)+'</span></div></div>' +
+      '<div class="card estimate-box"><div class="box-title">Estimasi tagihan</div>' + estRows + (promoDiscount ? '<div class="estimate-row discount"><span>Promo '+escapeHtml(f.promo.code)+'</span><span>- '+fmtMoney(promoDiscount)+'</span></div>' : '') + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(finalTotal)+'</span></div></div>' +
       '<button class="btn btn-primary" data-action="submit-order" '+(submitting?"disabled":"")+'>'+(submitting?"Mengirim...":"Kirim Pesanan")+'</button>';
   }
 
@@ -440,7 +534,7 @@
       var p = state.statusResult, curIdx = STEP_ORDER.indexOf(p.status);
       if(p.status === "Dibatalkan") result += '<div class="cancelled-banner">Mohon maaf, pesanan ini telah dibatalkan.</div>';
       else result += '<div class="card"><div class="stepper">' + STEP_ORDER.map(function(s,i){ return '<div class="step '+(i<curIdx?"done":(i===curIdx?"active":""))+'"><div class="line"></div><div class="dot">'+(i+1)+'</div><div class="label">'+s+'</div></div>'; }).join("") + '</div>' +
-        (p.status === "Pembayaran" ? paymentBoxHtml(p.price ? p.price.total : 0) +
+        (p.status === "Pembayaran" ? paymentBoxHtml(p.price ? p.price.total : 0, p.price && p.price.discount, p.price && p.price.promoCode) +
           '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="status-proof-file" accept="image/*" '+(state.statusUploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
           (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
           '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
@@ -452,8 +546,8 @@
       var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
       var driveUI = showDriveLink ? '<div class="drive-box"><div style="flex:1;"><label>File hasil animasi</label><div class="drive-note">Tautan folder Google Drive Anda sudah tersedia.</div></div><a href="'+escapeHtml(p.googleDriveLink)+'" target="_blank" rel="noopener" class="btn btn-drive">Buka Folder</a></div>' : '';
 
-      result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div><div><label>Tema animasi</label><div class="detail-value">'+(p.theme ? escapeHtml(p.theme) : '<span style="color:var(--ink-faint); font-weight:400; font-style:italic;">Menunggu review tim</span>')+'</div></div></div>' + driveUI + '</div>';
-      if(p.price) result += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div><div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
+      result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div><div><label>Tema animasi</label><div class="detail-value">'+(p.theme ? escapeHtml(p.theme) : '<span style="color:var(--ink-faint); font-weight:400; font-style:italic;">Menunggu review tim</span>')+'</div></div></div>' + driveUI + warrantyLinkHtml(p) + '</div>';
+      if(p.price) result += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div>'+discountRowHtml(p.price)+'<div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
     }
     return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres pengerjaan dan unduh hasil proyek Anda.</p>' + box + result;
   }
@@ -487,31 +581,31 @@
     clickAc("pick-package", function(el){
       var val = el.getAttribute("data-qty");
       var f = state.orderForm;
-      if(val === "custom"){ f.isCustom = true; f.qty = 50; }
+      if(val === "custom"){ f.isCustom = true; f.qty = Math.max(50, customMinQty()); }
       else { f.isCustom = false; f.qty = Number(val); }
       render();
     });
-    bindNum("f-qty-custom", function(v){ state.orderForm.qty = Math.max(Math.round(v), 31); render(); });
+    bindNum("f-qty-custom", function(v){ state.orderForm.qty = Math.max(Math.round(v), customMinQty()); render(); });
 
     // --- Pemilihan paket (tab Kalkulator) ---
     clickAc("pick-package-calc", function(el){
       var val = el.getAttribute("data-qty");
       var cst = state.calc;
-      if(val === "custom"){ cst.isCustom = true; cst.qty = 50; }
+      if(val === "custom"){ cst.isCustom = true; cst.qty = Math.max(50, customMinQty()); }
       else { cst.isCustom = false; cst.qty = Number(val); }
       render();
     });
-    bindNum("c-qty-custom", function(v){ state.calc.qty = Math.max(Math.round(v), 31); render(); });
+    bindNum("c-qty-custom", function(v){ state.calc.qty = Math.max(Math.round(v), customMinQty()); render(); });
 
     clickAc("submit-order", function(el){
       var f = state.orderForm;
       if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg = {error:"Mohon lengkapi Nama dan Nomor WhatsApp."}; render(); return; }
       if(!f.platforms.length){ state.orderMsg = {error:"Mohon pilih minimal satu platform microstock."}; render(); return; }
-      if(f.isCustom && (!f.qty || f.qty < 31)){ state.orderMsg = {error:"Untuk Pesanan Besar, jumlah video minimal 31."}; render(); return; }
+      if(f.isCustom && (!f.qty || f.qty < customMinQty())){ state.orderMsg = {error:"Untuk Pesanan Besar, jumlah video minimal "+customMinQty()+"."}; render(); return; }
       if(!f._pendingId) f._pendingId = uid();
       var id = f._pendingId;
       var price = computePrice(f.qty);
-      var payload = { action:"create", id:id, clientName:f.clientName.trim(), clientPhone:f.clientPhone.trim(), platforms:f.platforms.slice(), qty:f.qty, total: price.total };
+      var payload = { action:"create", id:id, clientName:f.clientName.trim(), clientPhone:f.clientPhone.trim(), platforms:f.platforms.slice(), qty:f.qty, total: price.total, promoCode:(f.promoCode||"").trim() }; // [BARU] promoCode (backend yang menghitung total final)
       f._submitting = true; render();
       fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) })
         .then(function(res){ return res.json(); })
@@ -519,12 +613,12 @@
           f._submitting = false;
           if(data && data.success){
             var backendTotal = data.project && typeof data.project.total === "number" ? data.project.total : price.total;
-            var project = { id:id, clientName:payload.clientName, clientPhone:payload.clientPhone, platforms:payload.platforms, qty:f.qty, price:{total:backendTotal}, paid:false, googleDriveLink: data.project ? data.project.googleDriveLink : "" };
+            var project = { id:id, clientName:payload.clientName, clientPhone:payload.clientPhone, platforms:payload.platforms, qty:f.qty, price:{total:backendTotal}, paid:false, googleDriveLink: data.project ? data.project.googleDriveLink : "", isRepeat: !!(data.project && data.project.isRepeat), discount: (data.project && data.project.discount) || 0, promoCode: (data.project && data.project.promoCode) || "" };
             state.orderMsg = { newId:id, project:project, phase:"awaiting_payment", proofError:"", uploading:false };
             f._pendingId = null;
             render(); window.scrollTo(0,0);
           } else {
-            state.orderMsg = { error: "Gagal membuat pesanan: " + (data && data.error ? data.error : "tidak diketahui.") + " Silakan coba lagi." };
+            state.orderMsg = { error: "Gagal membuat pesanan: " + (data && (data.message || data.error) ? (data.message || data.error) : "tidak diketahui.") + " Silakan coba lagi." };
             render();
           }
         })
@@ -534,6 +628,36 @@
           render();
         });
     });
+
+    // --- [BARU] Kode promo ---
+    var promoEl = document.getElementById("f-promo");
+    if(promoEl) promoEl.addEventListener("input", function(){
+      var f = state.orderForm; f.promoCode = promoEl.value;
+      if(f.promo || f.promoMsg){ // kode diubah setelah diterapkan -> batalkan diskon lama
+        f.promo = null; f.promoMsg = null; render();
+        var el = document.getElementById("f-promo"); if(el){ el.focus(); var n = el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
+      }
+    });
+    clickAc("apply-promo", function(){
+      var f = state.orderForm, code = (f.promoCode||"").trim().toUpperCase();
+      if(!code){ f.promo = null; f.promoMsg = "Masukkan kode promo terlebih dahulu."; render(); return; }
+      f.promoLoading = true; f.promoMsg = null; render();
+      apiGet({ action:"promo", code:code, qty:f.qty }).then(function(data){
+        f.promoLoading = false;
+        if(data && data.valid){ f.promo = { code:data.code, discount:data.discount }; f.promoCode = data.code; f.promoMsg = data.message; }
+        else { f.promo = null; f.promoMsg = (data && data.message) || "Kode promo tidak valid."; }
+        render();
+      }).catch(function(){ f.promoLoading = false; f.promo = null; f.promoMsg = "Gagal mengecek kode promo. Periksa koneksi internet Anda."; render(); });
+    });
+
+    // --- [BARU] Klaim garansi ---
+    bindInp("w-id", function(v){ state.warranty.id = v; });
+    bindInp("w-file-name", function(v){ state.warranty.rejectedFile = v; });
+    var wf = document.getElementById("warranty-file");
+    if(wf) wf.addEventListener("change", function(){ state.warranty.file = (wf.files && wf.files[0]) || null; });
+    clickAc("submit-warranty", submitWarranty);
+    clickAc("warranty-new", function(){ state.warranty = freshWarranty(); render(); });
+    clickAc("goto-warranty", function(el){ state.warranty = freshWarranty(); state.warranty.id = el.getAttribute("data-id"); state.tab = "warranty"; render(); window.scrollTo(0,0); });
 
     clickAc("order-new", function(){ state.orderForm = freshOrderForm(); state.orderMsg = null; render(); });
     clickAc("submit-proof", function(){
