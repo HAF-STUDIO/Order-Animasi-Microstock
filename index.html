@@ -329,6 +329,7 @@
     return fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) }).then(function(res){ return res.json(); });
   }
   function apiGet(params){
+    params._t = Date.now(); // [UBAH] anti-cache browser
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }).join("&");
     return fetch(CONFIG.webAppUrl + "?" + qs).then(function(res){ return res.json(); });
   }
