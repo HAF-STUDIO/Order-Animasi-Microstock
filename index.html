@@ -149,16 +149,16 @@
   .claim-steps { margin: 0 0 20px; padding-left: 20px; color: var(--ink-soft); font-size: 14px; }
   .claim-steps li { margin-bottom: 4px; }
 
-  /* Blok status revisi di halaman Lacak Status */
-  .revision-card { border-left: 3px solid var(--purple-border); }
-  .revision-title { display: flex; align-items: center; gap: 8px; }
-  .revision-badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em; }
-  .revision-badge.menunggu { background: var(--panel-alt); color: var(--ink-soft); }
-  .revision-badge.dikerjakan { background: var(--purple-bg); color: var(--purple-ink); }
-  .revision-badge.selesai { background: var(--teal-bg); color: #0B6B62; }
-  .revision-badge.ditolak { background: var(--coral-bg); color: #9C2A1D; }
-  .eta-note.revision { background: linear-gradient(135deg, var(--purple-bg), #FDEEFF); border-color: var(--purple-border); color: var(--purple-ink); }
-  .eta-note.revision .countdown-badge { color: var(--purple-ink); border-color: var(--purple-border); }
+  /* Status klaim garansi pada halaman Lacak Status */
+  .claim-card { border-left: 3px solid var(--purple-border); }
+  .claim-title { display: flex; align-items: center; gap: 8px; }
+  .claim-badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .claim-badge.menunggu { background: var(--panel-alt); color: var(--ink-soft); }
+  .claim-badge.dikerjakan { background: var(--purple-bg); color: var(--purple-ink); }
+  .claim-badge.selesai { background: var(--teal-bg); color: #0B6B62; }
+  .claim-badge.ditolak { background: var(--coral-bg); color: #9C2A1D; }
+  .eta-note.claim { background: linear-gradient(135deg, var(--purple-bg), #FDEEFF); border-color: var(--purple-border); color: var(--purple-ink); }
+  .eta-note.claim .countdown-badge { color: var(--purple-ink); border-color: var(--purple-border); }
 </style>
 </head>
 <body>
@@ -213,12 +213,12 @@
 
   function uid(){ return "PRJ-" + Date.now().toString(36).toUpperCase().slice(-4) + Math.random().toString(36).toUpperCase().slice(2,6); }
 
-  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusProofError: "", statusUploading: false, orderMsg: null, warranty: freshWarranty() };
+  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusLoading: false, statusRequestId: 0, statusProofError: "", statusUploading: false, orderMsg: null, warranty: freshWarranty() };
 
   function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, isCustom:false, _pendingId:null, _submitting:false, promoCode:"", promo:null, promoMsg:null, promoLoading:false }; }
-  function freshWarranty(){ return { id:"", rejectedFile:"", file:null, submitting:false, error:"", done:null }; }
+  function freshWarranty(){ return { id:"", open:false, rejectedFile:"", file:null, submitting:false, error:"", done:null }; }
   function customMinQty(){ var p = CONFIG.rates.packages; return p[p.length-1].qty + 1; }
-  function freshCalc(){ return { qty:10, isCustom:false, platforms:[], _queueFetched:false, _queueLoading:false, queuedVideosAhead:0 }; }
+  function freshCalc(){ return { qty:10, isCustom:false, platforms:[], _queueFetched:false, _queueLoading:false, queuedHoursAhead:0 }; }
 
   function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
 
@@ -239,9 +239,9 @@
     return p.workWindowEndHour > p.workWindowStartHour ? (p.workWindowEndHour - p.workWindowStartHour) : ((24 - p.workWindowStartHour) + p.workWindowEndHour);
   }
   function hoursPerVideoSim(){ return workWindowHoursSim() / Math.max(CONFIG.production.videosPerDay, 1); }
-  function simulateEtaHours(qty, queuedAhead){
-    var p = CONFIG.production, q = Math.max(Number(qty)||0, 1), ahead = Math.max(Number(queuedAhead)||0, 0);
-    return p.setupBufferHours + (ahead + q) * hoursPerVideoSim();
+  function simulateEtaHours(qty, queuedAheadHours){
+    var p = CONFIG.production, q = Math.max(Number(qty)||0, 1), ahead = Math.max(Number(queuedAheadHours)||0, 0);
+    return p.setupBufferHours + ahead + q * hoursPerVideoSim();
   }
   function simulateTargetDate(baseDate, hoursNeeded){
     var p = CONFIG.production, offsetMs = CONFIG.timezoneOffsetHours * 3600000;
@@ -272,11 +272,11 @@
     return dateStr + ' pukul ' + timeStr + ' WIB';
   }
 
-  function renderEtaSimulation(qty, queuedAhead){
-    var hours = simulateEtaHours(qty, queuedAhead);
+  function renderEtaSimulation(qty, queuedAheadHours){
+    var hours = simulateEtaHours(qty, queuedAheadHours);
     var target = simulateTargetDate(new Date(), hours);
     var targetStr = formatTargetDate(target);
-    var queueNote = (queuedAhead && queuedAhead > 0) ? ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang sudah lunas & sedang dikerjakan.") : "";
+    var queueNote = (queuedAheadHours && queuedAheadHours > 0) ? ("Termasuk beban antrean sekitar " + Number(queuedAheadHours).toLocaleString("id-ID", {maximumFractionDigits:1}) + " jam dari pekerjaan yang lebih dahulu masuk.") : "";
     return '<div class="eta-note">' +
         '<div>\uD83C\uDFAC Simulasi: jika pembayaranmu dikonfirmasi admin sekarang juga, targetnya sekitar <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
         (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
@@ -284,14 +284,19 @@
       '</div>';
   }
 
-  function renderEtaLocked(targetIso, queuedAhead, introText, extraClass){
+  function renderEtaLocked(targetIso, queuedAhead, introText, extraClass, queueUnit){
     var cls = 'eta-note' + (extraClass ? ' ' + extraClass : '');
     if(!targetIso){
       return '<div class="eta-note pending">\u23F3 Tanggal target selesai akan muncul otomatis di sini setelah admin mengonfirmasi.</div>';
     }
     var target = new Date(targetIso);
     var targetStr = formatTargetDate(target);
-    var queueNote = (queuedAhead && queuedAhead > 0) ? ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang lebih dulu masuk.") : "";
+    var queueNote = "";
+    if(queuedAhead && queuedAhead > 0){
+      queueNote = queueUnit === "jam"
+        ? ("Beban pekerjaan sebelum pesanan ini: " + Number(queuedAhead).toLocaleString("id-ID", {maximumFractionDigits:1}) + " jam.")
+        : ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang lebih dulu masuk.");
+    }
     return '<div class="' + cls + '">' +
         '<div>\uD83C\uDFAC ' + introText + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
         (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
@@ -323,13 +328,66 @@
 
   function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
+  function fetchJson(url, options, policy){
+    options = options || {};
+    policy = policy || {};
+    var maxAttempts = Math.max(1, Number(policy.maxAttempts) || 1);
+    var timeoutMs = Math.max(1000, Number(policy.timeoutMs) || 10000);
+    var canRetry = policy.retryTransient === true || maxAttempts > 1;
+
+    function requestOnce(){
+      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var requestOptions = Object.assign({}, options);
+      if(controller) requestOptions.signal = controller.signal;
+      var timer;
+      var request = fetch(url, requestOptions).then(function(res){
+        return res.text().then(function(body){
+          if(!res.ok){
+            var httpError = new Error("http_" + res.status);
+            httpError.status = res.status;
+            throw httpError;
+          }
+          try { return JSON.parse(body); }
+          catch(parseError){ var responseError = new Error("bad_response"); responseError.retryable = true; throw responseError; }
+        });
+      });
+      var timeout = new Promise(function(resolve, reject){
+        timer = setTimeout(function(){
+          if(controller) controller.abort();
+          var timeoutError = new Error("timeout");
+          timeoutError.isTimeout = true;
+          reject(timeoutError);
+        }, timeoutMs);
+      });
+      return Promise.race([request, timeout]).then(function(data){
+        clearTimeout(timer);
+        return data;
+      }, function(error){
+        clearTimeout(timer);
+        throw error;
+      });
+    }
+
+    function isRetryable(error){
+      return !error.status || error.status === 429 || error.status >= 500 || error.retryable || error.isTimeout;
+    }
+    function run(attempt){
+      return requestOnce().catch(function(error){
+        if(!canRetry || attempt >= maxAttempts || !isRetryable(error)) throw error;
+        var delay = Math.min(1800, 500 * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 250);
+        return new Promise(function(resolve){ setTimeout(resolve, delay); }).then(function(){ return run(attempt + 1); });
+      });
+    }
+    return run(1);
+  }
+
   function apiPost(payload){
-    return fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) }).then(function(res){ return res.json(); });
+    return fetchJson(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) }, { timeoutMs:30000 });
   }
   function apiGet(params){
     params._t = Date.now();
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }).join("&");
-    return fetch(CONFIG.webAppUrl + "?" + qs).then(function(res){ return res.json(); });
+    return fetchJson(CONFIG.webAppUrl + "?" + qs, {}, { maxAttempts:2, timeoutMs:8000 });
   }
 
   function promoFieldHtml(f){
@@ -348,54 +406,51 @@
   }
   function warrantyLinkHtml(p){
     if(!p.paid || p.status === "Dibatalkan" || (p.status !== "Order Dikerjakan" && p.status !== "Selesai")) return "";
-    return '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="goto-warranty" data-id="'+escapeHtml(p.id)+'">Ajukan klaim garansi</button></div>';
+    return '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="toggle-claim">'+(state.warranty.open?"Tutup formulir klaim":"Ajukan klaim garansi")+'</button></div>';
   }
 
-  // Blok kartu status revisi, ditampilkan di halaman Lacak Status untuk
-  // setiap klaim yang pernah diajukan pada kode order ini.
-  function revisionStatusBadge(status){
+  // Kartu status klaim garansi untuk kode order ini.
+  function claimStatusBadge(status){
     var key = String(status||"").toLowerCase();
     var label = status || "Menunggu";
-    return '<span class="revision-badge '+key+'">'+escapeHtml(label)+'</span>';
+    return '<span class="claim-badge '+key+'">'+escapeHtml(label)+'</span>';
   }
-  function renderRevisionCards(revisions){
-    if(!revisions || !revisions.length) return "";
-    return revisions.map(function(rev){
+  function renderClaimCards(claims){
+    if(!claims || !claims.length) return "";
+    return claims.map(function(claim){
       var body = "";
-      if(rev.status === "Menunggu"){
-        body = '<div class="verif-note">Klaim revisi ini sedang ditinjau admin. Jumlah file yang direvisi & jadwal pengerjaan akan muncul di sini begitu mulai diproses.</div>';
-      } else if(rev.status === "Dikerjakan"){
-        body = renderEtaLocked(rev.estimasiSelesai, 0, "File revisimu ("+escapeHtml(rev.fileName)+", "+rev.jumlahFile+" file) sedang dikerjakan tim kami!", "revision") +
-          '<span class="field-note" style="display:block; margin-top:-10px;">Revisi diprioritaskan setelah seluruh pesanan baru yang sedang berjalan saat ini selesai dijadwalkan.</span>';
-      } else if(rev.status === "Selesai"){
-        body = '<div class="verif-note" style="background:var(--teal-bg); border-color:var(--teal-border); color:#0B6B62;">Revisi untuk file <strong>'+escapeHtml(rev.fileName)+'</strong> sudah selesai. Silakan cek folder hasil Anda.</div>';
-      } else if(rev.status === "Ditolak"){
-        body = '<div class="cancelled-banner">Klaim revisi untuk file '+escapeHtml(rev.fileName)+' ditolak. Hubungi admin untuk info lebih lanjut.</div>';
+      if(claim.status === "Menunggu"){
+        body = '<div class="verif-note">Klaim garansi untuk file ini sedang ditinjau. Jadwal pengerjaan akan muncul setelah mulai diproses.</div>';
+      } else if(claim.status === "Dikerjakan"){
+        body = renderEtaLocked(claim.estimasiSelesai, 0, "Klaim untuk file "+escapeHtml(claim.fileName)+" sedang dikerjakan tim kami.", "claim");
+      } else if(claim.status === "Selesai"){
+        body = '<div class="verif-note" style="background:var(--teal-bg); border-color:var(--teal-border); color:#0B6B62;">Klaim garansi untuk file <strong>'+escapeHtml(claim.fileName)+'</strong> sudah selesai. Silakan cek folder hasil Anda.</div>';
+      } else if(claim.status === "Ditolak"){
+        body = '<div class="cancelled-banner">Klaim garansi untuk file '+escapeHtml(claim.fileName)+' ditolak. Hubungi admin untuk info lebih lanjut.</div>';
       }
-      return '<div class="card revision-card"><div class="box-title revision-title">Klaim Revisi: '+escapeHtml(rev.fileName)+' '+revisionStatusBadge(rev.status)+'</div>' + body + '</div>';
+      return '<div class="card claim-card"><div class="box-title claim-title">Klaim Garansi: '+escapeHtml(claim.fileName)+' '+claimStatusBadge(claim.status)+'</div>' + body + '</div>';
     }).join("");
   }
 
-  function renderWarrantyTab(){
+  function renderWarrantyForm(){
     var w = state.warranty;
+    var p = state.statusResult;
+    if(!w.open || !p || !p.paid || p.status === "Dibatalkan" ||
+      (p.status !== "Order Dikerjakan" && p.status !== "Selesai")) return "";
     if(w.done){
-      return '<h2 class="panel-title">Klaim Revisi Terkirim</h2><p class="panel-sub">Tim kami akan memeriksa bukti penolakan dan menghubungi Anda lewat WhatsApp.</p>' +
-        '<div class="card"><div class="id-display">'+escapeHtml(w.done.id)+'</div>' +
-        '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(w.done.fileName)+'</strong> sudah tercatat dengan status <strong>'+escapeHtml(w.done.status)+'</strong>.</div>' +
-        '<p class="field-note">Anda bisa memantau progres klaim ini kapan saja lewat tab "Lacak Status" memakai kode order yang sama.</p>' +
-        '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="warranty-new">Ajukan klaim untuk file lain</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+escapeHtml(w.done.id)+'">Lacak Sekarang</button></div></div>';
+      return '<div class="card"><div class="box-title">Klaim berhasil dikirim</div>' +
+        '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(w.done.fileName)+'</strong> sudah tercatat dengan status <strong>'+escapeHtml(w.done.status)+'</strong>. Anda bisa memantau perkembangannya di halaman ini.</div>' +
+        '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="claim-another">Ajukan klaim file lain</button><button class="btn btn-ghost btn-small" data-action="close-claim">Tutup</button></div></div>';
     }
     var busy = w.submitting;
-    return '<h2 class="panel-title">Klaim Garansi (Revisi)</h2><p class="panel-sub">Video ditolak Adobe Stock atau Shutterstock? Kirim buktinya di sini.</p>' +
-      (w.error ? '<div class="msg msg-error">'+escapeHtml(w.error)+'</div>' : "") +
-      '<div class="card">' +
-        '<ol class="claim-steps"><li>Masukkan kode pesanan Anda.</li><li>Tulis nama file video yang ditolak.</li><li>Unggah screenshot penolakan yang memperlihatkan nama file dan alasannya.</li></ol>' +
-        '<div class="grid2"><div class="field"><label>Kode Pesanan (PRJ-XXXX)</label><input type="text" id="w-id" value="'+escapeHtml(w.id)+'" placeholder="PRJ-AB12CD34" autocomplete="off"></div>' +
-        '<div class="field"><label>Nama File yang Ditolak</label><input type="text" id="w-file-name" value="'+escapeHtml(w.rejectedFile)+'" placeholder="anim_01.mp4" autocomplete="off"></div></div>' +
+    return (w.error ? '<div class="msg msg-error">'+escapeHtml(w.error)+'</div>' : "") +
+      '<div class="card" id="claim-form-card"><div class="box-title">Ajukan klaim garansi</div><p class="panel-sub">Isi nama file yang ditolak dan unggah screenshot penolakannya. Kode pesanan '+escapeHtml(w.id)+' sudah terhubung.</p>' +
+        '<div class="field"><label>Nama File yang Ditolak</label><input type="text" id="w-file-name" value="'+escapeHtml(w.rejectedFile)+'" placeholder="anim_01.mp4" autocomplete="off"></div>' +
         '<div class="field"><label>Screenshot Penolakan</label><input type="file" id="warranty-file" accept="image/*" '+(busy?"disabled":"")+'>' +
           (w.file ? '<div class="file-picked">Dipilih: '+escapeHtml(w.file.name)+' ('+Math.round(w.file.size/1024)+' KB)</div>' : "") +
           '<div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
         '<button class="btn btn-primary" data-action="submit-warranty" '+(busy?"disabled":"")+'>'+(busy?"Mengirim klaim...":"Kirim Klaim")+'</button>' +
+        '<button class="btn btn-ghost btn-small" data-action="close-claim" style="margin-left:8px;" '+(busy?"disabled":"")+'>Batal</button>' +
       '</div>';
   }
 
@@ -404,7 +459,8 @@
     var input = document.getElementById("warranty-file");
     var file = (input && input.files && input.files[0]) || w.file;
     w.id = (w.id||"").trim().toUpperCase(); w.rejectedFile = (w.rejectedFile||"").trim();
-    if(!w.id || !w.rejectedFile){ w.error = "Kode pesanan dan nama file yang ditolak wajib diisi."; render(); return; }
+    if(!w.id || !state.statusResult || String(state.statusResult.id).toUpperCase() !== w.id){ w.error = "Lacak pesanan terlebih dahulu sebelum mengajukan klaim."; render(); return; }
+    if(!w.rejectedFile){ w.error = "Nama file yang ditolak wajib diisi."; render(); return; }
     if(!file){ w.error = "Mohon unggah screenshot penolakan dari Adobe Stock / Shutterstock."; render(); return; }
     if(file.size > CONFIG.maxProofSizeBytes){ w.file = file; w.error = "Ukuran screenshot terlalu besar (maksimal 4MB)."; render(); return; }
     w.file = file; w.error = ""; w.submitting = true; render();
@@ -412,11 +468,16 @@
       return apiPost({ action:"warranty_claim", id:w.id, rejectedFile:w.rejectedFile, proofFileName:file.name, mimeType:file.type || "image/jpeg", fileData:base64 });
     }).then(function(data){
       w.submitting = false;
-      if(data && data.success){ w.done = data.claim; w.file = null; }
+      if(data && data.success){
+        w.done = data.claim || { id:w.id, fileName:w.rejectedFile, status:"Menunggu", submittedAt:new Date().toISOString() };
+        w.file = null;
+        if(!state.statusResult.claims) state.statusResult.claims = [];
+        state.statusResult.claims.unshift({ fileName:w.done.fileName, jumlahFile:1, status:w.done.status || "Menunggu", estimasiSelesai:null, submittedAt:w.done.submittedAt || new Date().toISOString() });
+      }
       else { w.error = (data && (data.message || data.error)) || "Klaim gagal dikirim. Silakan coba lagi."; }
       render(); window.scrollTo(0,0);
     }).catch(function(){
-      w.submitting = false; w.error = "Gagal terhubung ke server. Periksa koneksi internet Anda, lalu coba lagi."; render();
+      w.submitting = false; w.error = "Sambungan terputus sebelum server mengonfirmasi klaim. Lacak status pesanan sebelum mencoba lagi agar klaim tidak terkirim dua kali."; render();
     });
   }
 
@@ -476,7 +537,7 @@
 
   function syncRemoteConfig(){
     if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
-    fetch(CONFIG.webAppUrl + "?action=config").then(function(r){ return r.json(); }).then(function(data){
+    fetchJson(CONFIG.webAppUrl + "?action=config", {}, { maxAttempts:1, timeoutMs:6000 }).then(function(data){
       if(data && data.production) CONFIG.production = data.production;
       if(data && data.rates) CONFIG.rates = data.rates;
       if(data && data.allowedPlatforms && data.allowedPlatforms.length) PLATFORMS_KNOWN = data.allowedPlatforms;
@@ -488,9 +549,10 @@
     if(state.calc._queueFetched || state.calc._queueLoading) return;
     if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
     state.calc._queueLoading = true;
-    fetch(CONFIG.webAppUrl + "?action=queue").then(function(r){ return r.json(); }).then(function(data){
+    fetchJson(CONFIG.webAppUrl + "?action=queue", {}, { maxAttempts:2, timeoutMs:8000 }).then(function(data){
       state.calc._queueLoading = false; state.calc._queueFetched = true;
-      state.calc.queuedVideosAhead = (data && typeof data.queuedVideosAhead === "number") ? data.queuedVideosAhead : 0;
+      state.calc.queuedHoursAhead = (data && typeof data.queuedHoursAhead === "number") ? data.queuedHoursAhead :
+        ((data && typeof data.queuedVideosAhead === "number") ? data.queuedVideosAhead * hoursPerVideoSim() : 0);
       render();
     }).catch(function(){ state.calc._queueLoading = false; state.calc._queueFetched = true; render(); });
   }
@@ -498,12 +560,11 @@
   function render(){
     var c = document.getElementById("content");
     var html = '<header class="top"><div class="top-row"><div><p class="brand-name">'+escapeHtml(CONFIG.businessName)+'</p><p class="tagline">Pemesanan &amp; pelacakan status proyek</p></div><div class="frame-mark"><span class="dot"></span>Sistem Online</div></div>' +
-      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button><button data-tab="warranty" class="'+(state.tab==="warranty"?"active":"")+'">Klaim Garansi</button></nav></header>';
+      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button></nav></header>';
     html += '<main>';
     if(state.tab === "order") html += renderOrderTab();
     else if(state.tab === "status") html += renderStatusTab();
     else if(state.tab === "calc") html += renderCalcTab();
-    else if(state.tab === "warranty") html += renderWarrantyTab();
     html += '</main><footer class="foot">Sistem terenkripsi aman &mdash; Data Anda tersimpan secara privat.</footer>';
     c.innerHTML = html; attachHandlers(); restartCountdownTicker();
   }
@@ -545,8 +606,8 @@
   }
 
   function renderStatusTab(){
-    var box = '<div class="card"><div class="field" style="margin-bottom:0;"><label>Kode Pesanan (PRJ-XXXX)</label><div style="display:flex; gap:10px;"><input type="text" id="status-id-input" value="'+escapeHtml(state.statusLookupId)+'" placeholder="Ketik kode di sini..." style="flex:1;"><button class="btn btn-primary btn-small" data-action="lookup-status">Lacak</button></div></div></div>';
-    var result = state.statusError ? '<div class="msg '+(state.statusError.indexOf("Mencari")>-1?"msg-info":"msg-error")+'">'+escapeHtml(state.statusError)+'</div>' : "";
+    var box = '<div class="card"><div class="field" style="margin-bottom:0;"><label>Kode Pesanan (PRJ-XXXX)</label><div style="display:flex; gap:10px;"><input type="text" id="status-id-input" value="'+escapeHtml(state.statusLookupId)+'" placeholder="Ketik kode di sini..." style="flex:1;"><button class="btn btn-primary btn-small" data-action="lookup-status" '+(state.statusLoading?"disabled":"")+'>'+(state.statusLoading?"Memuat...":"Lacak")+'</button></div></div></div>';
+    var result = state.statusError ? '<div class="msg '+(state.statusLoading?"msg-info":"msg-error")+'">'+escapeHtml(state.statusError)+'</div>' : "";
     if(state.statusResult){
       var p = state.statusResult, curIdx = STEP_ORDER.indexOf(p.status);
       if(p.status === "Dibatalkan") result += '<div class="cancelled-banner">Mohon maaf, pesanan ini telah dibatalkan.</div>';
@@ -557,17 +618,18 @@
           '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
         (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' +
           '<div class="eta-note pending">\u23F3 Setelah admin mengonfirmasi pembayaranmu, jadwal pengerjaan akan langsung terkunci dan tanggal target selesai muncul otomatis di sini.</div>' : "") +
-        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queuedVideosAhead, "Animasimu sedang digarap oleh tim kami!") : "") +
+        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queueAheadHours, "Animasimu sedang digarap oleh tim kami!", "", "jam") : "") +
         '</div>';
 
       var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
       var driveUI = showDriveLink ? '<div class="drive-box"><div style="flex:1;"><label>File hasil animasi</label><div class="drive-note">Tautan folder Google Drive Anda sudah tersedia.</div></div><a href="'+escapeHtml(p.googleDriveLink)+'" target="_blank" rel="noopener" class="btn btn-drive">Buka Folder</a></div>' : '';
 
       result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div></div>' + driveUI + warrantyLinkHtml(p) + '</div>';
+      result += renderWarrantyForm();
       if(p.price) result += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div>'+discountRowHtml(p.price)+'<div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
 
-      // Riwayat klaim revisi untuk kode order ini (kalau ada).
-      result += renderRevisionCards(p.revisions);
+      // Riwayat klaim garansi untuk kode order ini (kalau ada).
+      result += renderClaimCards(p.claims);
     }
     return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres pengerjaan dan unduh hasil proyek Anda.</p>' + box + result;
   }
@@ -575,7 +637,7 @@
   function renderCalcTab(){
     var c = state.calc, est = computePrice(c.qty);
     var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
-    var queuedAhead = c._queueFetched ? c.queuedVideosAhead : 0;
+    var queuedAhead = c._queueFetched ? c.queuedHoursAhead : 0;
     return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya &amp; perkiraan waktu pengerjaan aset video Anda.</p>' +
       '<div class="card"><div class="field"><label>Pilih Paket</label>' + packageChipsHtml(c.qty, c.isCustom, "calc") + '</div>' +
       (c.isCustom ? customQtyFieldHtml(c.qty, "c-qty-custom") : "") +
@@ -667,13 +729,35 @@
       }).catch(function(){ f.promoLoading = false; f.promo = null; f.promoMsg = "Gagal mengecek kode promo. Periksa koneksi internet Anda."; render(); });
     });
 
-    bindInp("w-id", function(v){ state.warranty.id = v; });
     bindInp("w-file-name", function(v){ state.warranty.rejectedFile = v; });
     var wf = document.getElementById("warranty-file");
     if(wf) wf.addEventListener("change", function(){ state.warranty.file = (wf.files && wf.files[0]) || null; });
     clickAc("submit-warranty", submitWarranty);
-    clickAc("warranty-new", function(){ state.warranty = freshWarranty(); render(); });
-    clickAc("goto-warranty", function(el){ state.warranty = freshWarranty(); state.warranty.id = el.getAttribute("data-id"); state.tab = "warranty"; render(); window.scrollTo(0,0); });
+    clickAc("toggle-claim", function(){
+      var project = state.statusResult;
+      if(!project) return;
+      var isOpening = !state.warranty.open;
+      if(isOpening && state.warranty.id !== project.id){
+        state.warranty = freshWarranty();
+        state.warranty.id = project.id;
+      }
+      state.warranty.open = isOpening;
+      render();
+      if(isOpening){
+        var claimCard = document.getElementById("claim-form-card");
+        if(claimCard) claimCard.scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    });
+    clickAc("claim-another", function(){
+      var id = state.statusResult && state.statusResult.id;
+      state.warranty = freshWarranty();
+      state.warranty.id = id || "";
+      state.warranty.open = true;
+      render();
+      var claimCard = document.getElementById("claim-form-card");
+      if(claimCard) claimCard.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+    clickAc("close-claim", function(){ state.warranty.open = false; render(); });
 
     clickAc("order-new", function(){ state.orderForm = freshOrderForm(); state.orderMsg = null; render(); });
     clickAc("submit-proof", function(){
@@ -729,13 +813,51 @@
 
   function lookupStatus(){
     var idEl = document.getElementById("status-id-input"), id = (idEl ? idEl.value : state.statusLookupId).trim().toUpperCase(); state.statusLookupId = id;
-    if(!id){ state.statusError = "Harap masukkan kode pesanan."; state.statusResult = null; render(); return; }
-    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1){ state.statusError = "Sistem database belum dihubungkan. Mohon hubungi admin."; render(); return; }
-    state.statusError = "Mencari data ke database..."; state.statusResult = null; state.statusProofError = ""; state.statusUploading = false; render();
-    fetch(CONFIG.webAppUrl + "?id=" + encodeURIComponent(id))
-      .then(function(res){ return res.json(); })
-      .then(function(data){ if(data.error){ state.statusError = "Kode pesanan tidak ditemukan."; } else { state.statusError = ""; state.statusResult = data; } render(); })
-      .catch(function(){ state.statusError = "Gagal memuat data. Periksa koneksi internet Anda."; state.statusResult = null; render(); });
+    var requestId = ++state.statusRequestId;
+    if(!id){
+      state.statusLoading = false; state.statusError = "Harap masukkan kode pesanan."; state.statusResult = null; render(); return;
+    }
+    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1){
+      state.statusLoading = false; state.statusError = "Sistem database belum dihubungkan. Mohon hubungi admin."; render(); return;
+    }
+    var sameOrder = state.statusResult && String(state.statusResult.id).toUpperCase() === id;
+    state.statusLoading = true;
+    state.statusError = "Sedang memuat status pesanan...";
+    if(!sameOrder) state.statusResult = null;
+    if(state.warranty.id !== id){
+      state.warranty = freshWarranty();
+      state.warranty.id = id;
+    }
+    state.statusProofError = "";
+    state.statusUploading = false;
+    render();
+    var url = CONFIG.webAppUrl + "?id=" + encodeURIComponent(id) + "&_t=" + Date.now();
+    fetchJson(url, {}, { maxAttempts:2, timeoutMs:8000 }).then(function(data){
+      if(requestId !== state.statusRequestId) return;
+      state.statusLoading = false;
+      if(data && data.error){
+        state.statusError = "Kode pesanan tidak ditemukan. Periksa kembali kode yang Anda masukkan.";
+        state.statusResult = null;
+      } else if(!data || !data.id){
+        state.statusError = "Server mengirim data yang belum lengkap. Silakan coba lagi.";
+        state.statusResult = null;
+      } else {
+        state.statusError = "";
+        state.statusResult = data;
+        if(state.warranty.id !== id){
+          state.warranty = freshWarranty();
+          state.warranty.id = id;
+        }
+      }
+      render();
+    }).catch(function(error){
+      if(requestId !== state.statusRequestId) return;
+      state.statusLoading = false;
+      state.statusError = error && error.isTimeout
+        ? "Server lama merespons. Status belum termuat; silakan coba lagi sebentar."
+        : "Status belum termuat. Koneksi atau server sedang bermasalah; coba lagi sebentar.";
+      render();
+    });
   }
   render();
   syncRemoteConfig();
