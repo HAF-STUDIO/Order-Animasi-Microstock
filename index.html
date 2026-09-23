@@ -17,6 +17,7 @@
     --teal: #0E9C90; --teal-bg: #E7F7F5; --teal-border: #B7E7E1;
     --coral: #E8503D; --coral-bg: #FDEEEC; --coral-border: #F5C2BA;
     --blue-bg: #EAF0FF; --blue-border: #C7D6FA; --blue-ink: #1E3A8A;
+    --purple-bg: #F1EEFF; --purple-border: #D9CFFB; --purple-ink: #4C2E9C;
     --radius-lg: 18px; --radius-md: 12px; --radius-sm: 8px;
     --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif;
     --shadow-card: 0 1px 2px rgba(18,22,43,0.04), 0 8px 24px -12px rgba(18,22,43,0.12);
@@ -87,9 +88,6 @@
   .estimate-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; padding: 6px 0; color: var(--ink-soft); }
   .estimate-row.total { color: var(--ink); font-weight: 700; font-size: 18px; border-top: 1px solid var(--border-strong); margin-top: 10px; padding-top: 14px; }
 
-  .tier-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
-  .tier-table th { text-align: left; color: var(--ink-faint); font-weight: 600; font-size: 11.5px; padding: 10px 8px; border-bottom: 1px solid var(--border-strong); }
-  .tier-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); color: var(--ink-soft); font-weight: 500; }
   .flat-rate-note { display: flex; justify-content: space-between; align-items: center; background: var(--panel-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 12px; font-weight: 600; color: var(--ink); }
 
   .id-display { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: 0.04em; background: var(--panel-alt); border: 2px dashed var(--border-strong); color: var(--navy); padding: 20px; border-radius: var(--radius-md); text-align: center; margin: 4px 0 20px; word-break: break-all; }
@@ -138,7 +136,6 @@
     h2.panel-title { font-size: 20px; }
   }
 
-  /* [BARU] Promo, repeat order, klaim garansi */
   .promo-row { display: flex; gap: 10px; }
   .promo-row input { flex: 1; text-transform: uppercase; }
   .promo-row input::placeholder { text-transform: none; }
@@ -151,6 +148,17 @@
   .file-picked { font-size: 12.5px; color: var(--teal); font-weight: 600; margin-top: 6px; word-break: break-all; }
   .claim-steps { margin: 0 0 20px; padding-left: 20px; color: var(--ink-soft); font-size: 14px; }
   .claim-steps li { margin-bottom: 4px; }
+
+  /* [BARU] Blok status revisi di halaman Lacak Status */
+  .revision-card { border-left: 3px solid var(--purple-border); }
+  .revision-title { display: flex; align-items: center; gap: 8px; }
+  .revision-badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .revision-badge.menunggu { background: var(--panel-alt); color: var(--ink-soft); }
+  .revision-badge.dikerjakan { background: var(--purple-bg); color: var(--purple-ink); }
+  .revision-badge.selesai { background: var(--teal-bg); color: #0B6B62; }
+  .revision-badge.ditolak { background: var(--coral-bg); color: #9C2A1D; }
+  .eta-note.revision { background: linear-gradient(135deg, var(--purple-bg), #FDEEFF); border-color: var(--purple-border); color: var(--purple-ink); }
+  .eta-note.revision .countdown-badge { color: var(--purple-ink); border-color: var(--purple-border); }
 </style>
 </head>
 <body>
@@ -163,17 +171,15 @@
 
   // =========================================================================
   // KONFIGURASI APLIKASI
-  // Nilai production & rates di sini hanyalah FALLBACK. Nilai sesungguhnya
+  // Nilai production & rates di sini hanyalah FALLBACK (dipakai sesaat
+  // sebelum sinkronisasi dari backend selesai). Nilai sesungguhnya
   // disinkronkan otomatis dari backend (CONFIG di Code.gs) tiap kali app
-  // dibuka, supaya kamu cukup ubah angka di SATU tempat (backend) saja.
+  // dibuka, supaya kamu cukup ubah angka di SATU tempat (backend/Pengaturan).
   // =========================================================================
   var CONFIG = {
-    // Exec URL deployment Apps Script yang terikat ke spreadsheet "Database Order Animasi" (data asli).
     webAppUrl: "https://script.google.com/macros/s/AKfycbxHUh92eukvcAJsMv2tOuKDRXGT3vzIeonHdyhWBGPJnYjrDuqfCWUlGYFKJy3sonzJvA/exec",
     businessName: "Order Animasi Microstock",
     currency: "Rp",
-    // Skema paket tetap. Qty di UI HANYA bisa memilih salah satu paket ini
-    // atau mode "Pesanan Besar" (>30 video, flat overflowPricePerVideo).
     rates: {
       packages: [
         { qty: 10, price: 75000, label: "Starter" },
@@ -182,7 +188,9 @@
       ],
       overflowPricePerVideo: 5000
     },
-    production: { videosPerDay: 30, workWindowStartHour: 19, workWindowEndHour: 0, setupBufferHours: 0.5 },
+    // [UBAH] disamakan dengan default backend (videosPerDay: 20) supaya
+    // simulasi ETA sebelum sinkronisasi selesai tidak menyesatkan.
+    production: { videosPerDay: 20, workWindowStartHour: 19, workWindowEndHour: 0, setupBufferHours: 0.5 },
     timezoneOffsetHours: 7, // Asia/Jakarta (WIB), tidak ada DST
     maxProofSizeBytes: 4 * 1024 * 1024,
     payment: {
@@ -194,7 +202,7 @@
   // =========================================================================
 
   var STEP_ORDER = ["Brief Diterima","Pembayaran","Verifikasi","Order Dikerjakan","Selesai"];
-  var PLATFORMS_KNOWN = ["Adobe Stock","Shutterstock"]; // disinkronkan juga dari backend saat load
+  var PLATFORMS_KNOWN = ["Adobe Stock","Shutterstock"];
 
   function uid(){ return "PRJ-" + Date.now().toString(36).toUpperCase().slice(-4) + Math.random().toString(36).toUpperCase().slice(2,6); }
 
@@ -202,16 +210,11 @@
 
   function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, isCustom:false, _pendingId:null, _submitting:false, promoCode:"", promo:null, promoMsg:null, promoLoading:false }; }
   function freshWarranty(){ return { id:"", rejectedFile:"", file:null, submitting:false, error:"", done:null }; }
-  // [BARU] Batas bawah "Pesanan Besar" = qty paket terbesar + 1 (ikut sheet Pengaturan, bukan angka 31 tetap)
   function customMinQty(){ var p = CONFIG.rates.packages; return p[p.length-1].qty + 1; }
   function freshCalc(){ return { qty:10, isCustom:false, platforms:[], _queueFetched:false, _queueLoading:false, queuedVideosAhead:0 }; }
 
   function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
 
-  // ---------------------------------------------------------------------
-  // HARGA — SKEMA PAKET TETAP (harus selaras dengan computePriceBackend
-  // di Code.gs; backend tetap jadi sumber kebenaran final saat submit).
-  // ---------------------------------------------------------------------
   function computePrice(qty){
     var q = Math.max(Math.round(Number(qty)||0), 0);
     var pkgs = CONFIG.rates.packages;
@@ -224,13 +227,6 @@
     return { total: match.price, isCustom: false, items: [{ label: "Paket " + match.label + " (" + match.qty + " video)", value: match.price }] };
   }
 
-  // ---------------------------------------------------------------------
-  // SIMULASI ETA (HANYA untuk tab Kalkulator, sebelum order dibuat).
-  // Ini murni perkiraan kasar "kalau dibayar sekarang" — TIDAK dipakai
-  // untuk order yang sudah berjalan. Tanggal selesai yang MENGIKAT untuk
-  // order nyata selalu datang dari backend (field estimasiSelesai),
-  // dihitung sekali oleh admin saat mencentang "Lunas".
-  // ---------------------------------------------------------------------
   function workWindowHoursSim(){
     var p = CONFIG.production;
     return p.workWindowEndHour > p.workWindowStartHour ? (p.workWindowEndHour - p.workWindowStartHour) : ((24 - p.workWindowStartHour) + p.workWindowEndHour);
@@ -269,7 +265,6 @@
     return dateStr + ' pukul ' + timeStr + ' WIB';
   }
 
-  // Dipakai HANYA di tab Kalkulator: simulasi kasar, bukan janji pasti.
   function renderEtaSimulation(qty, queuedAhead){
     var hours = simulateEtaHours(qty, queuedAhead);
     var target = simulateTargetDate(new Date(), hours);
@@ -282,18 +277,18 @@
       '</div>';
   }
 
-  // Dipakai di tab Lacak Status untuk order yang SUDAH LUNAS & dikunci
-  // (status "Order Dikerjakan") — tanggalnya PASTI dari backend, bukan
-  // dihitung ulang di browser klien.
-  function renderEtaLocked(targetIso, queuedAhead){
+  // [UBAH] introText & extraClass dibuat parametrik supaya bisa dipakai
+  // ulang untuk blok "Order Dikerjakan" maupun blok status revisi.
+  function renderEtaLocked(targetIso, queuedAhead, introText, extraClass){
+    var cls = 'eta-note' + (extraClass ? ' ' + extraClass : '');
     if(!targetIso){
-      return '<div class="eta-note pending">\u23F3 Tanggal target selesai akan muncul otomatis di sini setelah admin mengonfirmasi pembayaranmu.</div>';
+      return '<div class="eta-note pending">\u23F3 Tanggal target selesai akan muncul otomatis di sini setelah admin mengonfirmasi.</div>';
     }
     var target = new Date(targetIso);
     var targetStr = formatTargetDate(target);
     var queueNote = (queuedAhead && queuedAhead > 0) ? ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang lebih dulu masuk.") : "";
-    return '<div class="eta-note">' +
-        '<div>\uD83C\uDFAC Animasimu sedang digarap oleh tim kami! Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
+    return '<div class="' + cls + '">' +
+        '<div>\uD83C\uDFAC ' + introText + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
         (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
         '<div class="countdown-badge">\u23F3 <span class="countdown" data-target="' + target.toISOString() + '">menghitung...</span></div>' +
       '</div>';
@@ -323,13 +318,11 @@
 
   function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
-  // [BARU] Semua komunikasi ke backend memakai fetch() murni. POST dikirim sebagai
-  // text/plain agar TIDAK memicu preflight CORS ke Google Apps Script.
   function apiPost(payload){
     return fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) }).then(function(res){ return res.json(); });
   }
   function apiGet(params){
-    params._t = Date.now(); // [UBAH] anti-cache browser
+    params._t = Date.now();
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }).join("&");
     return fetch(CONFIG.webAppUrl + "?" + qs).then(function(res){ return res.json(); });
   }
@@ -353,16 +346,42 @@
     return '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="goto-warranty" data-id="'+escapeHtml(p.id)+'">Ajukan klaim garansi</button></div>';
   }
 
+  // [BARU] Blok kartu status revisi, ditampilkan di halaman Lacak Status
+  // untuk setiap klaim yang pernah diajukan pada kode order ini.
+  function revisionStatusBadge(status){
+    var key = String(status||"").toLowerCase();
+    var label = status || "Menunggu";
+    return '<span class="revision-badge '+key+'">'+escapeHtml(label)+'</span>';
+  }
+  function renderRevisionCards(revisions){
+    if(!revisions || !revisions.length) return "";
+    return revisions.map(function(rev){
+      var body = "";
+      if(rev.status === "Menunggu"){
+        body = '<div class="verif-note">Klaim revisi ini sedang ditinjau admin. Jumlah file yang direvisi & jadwal pengerjaan akan muncul di sini begitu mulai diproses.</div>';
+      } else if(rev.status === "Dikerjakan"){
+        body = renderEtaLocked(rev.estimasiSelesai, 0, "File revisimu ("+escapeHtml(rev.fileName)+", "+rev.jumlahFile+" file) sedang dikerjakan tim kami!", "revision") +
+          '<span class="field-note" style="display:block; margin-top:-10px;">Revisi diprioritaskan setelah seluruh pesanan baru yang sedang berjalan saat ini selesai dijadwalkan.</span>';
+      } else if(rev.status === "Selesai"){
+        body = '<div class="verif-note" style="background:var(--teal-bg); border-color:var(--teal-border); color:#0B6B62;">Revisi untuk file <strong>'+escapeHtml(rev.fileName)+'</strong> sudah selesai. Silakan cek folder hasil Anda.</div>';
+      } else if(rev.status === "Ditolak"){
+        body = '<div class="cancelled-banner">Klaim revisi untuk file '+escapeHtml(rev.fileName)+' ditolak. Hubungi admin untuk info lebih lanjut.</div>';
+      }
+      return '<div class="card revision-card"><div class="box-title revision-title">Klaim Revisi: '+escapeHtml(rev.fileName)+' '+revisionStatusBadge(rev.status)+'</div>' + body + '</div>';
+    }).join("");
+  }
+
   function renderWarrantyTab(){
     var w = state.warranty;
     if(w.done){
-      return '<h2 class="panel-title">Klaim Garansi Terkirim</h2><p class="panel-sub">Tim kami akan memeriksa bukti penolakan dan menghubungi Anda lewat WhatsApp.</p>' +
+      return '<h2 class="panel-title">Klaim Revisi Terkirim</h2><p class="panel-sub">Tim kami akan memeriksa bukti penolakan dan menghubungi Anda lewat WhatsApp.</p>' +
         '<div class="card"><div class="id-display">'+escapeHtml(w.done.id)+'</div>' +
         '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(w.done.fileName)+'</strong> sudah tercatat dengan status <strong>'+escapeHtml(w.done.status)+'</strong>.</div>' +
-        '<div style="text-align:center;"><button class="btn btn-ghost" data-action="warranty-new">Ajukan klaim untuk file lain</button></div></div>';
+        '<p class="field-note">Anda bisa memantau progres klaim ini kapan saja lewat tab "Lacak Status" memakai kode order yang sama.</p>' +
+        '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="warranty-new">Ajukan klaim untuk file lain</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+escapeHtml(w.done.id)+'">Lacak Sekarang</button></div></div>';
     }
     var busy = w.submitting;
-    return '<h2 class="panel-title">Klaim Garansi</h2><p class="panel-sub">Video ditolak Adobe Stock atau Shutterstock? Kirim buktinya di sini.</p>' +
+    return '<h2 class="panel-title">Klaim Garansi (Revisi)</h2><p class="panel-sub">Video ditolak Adobe Stock atau Shutterstock? Kirim buktinya di sini.</p>' +
       (w.error ? '<div class="msg msg-error">'+escapeHtml(w.error)+'</div>' : "") +
       '<div class="card">' +
         '<ol class="claim-steps"><li>Masukkan kode pesanan Anda.</li><li>Tulis nama file video yang ditolak.</li><li>Unggah screenshot penolakan yang memperlihatkan nama file dan alasannya.</li></ol>' +
@@ -412,8 +431,6 @@
     }).join("") + '</div>';
   }
 
-  // Chip pemilihan paket. targetState: "order" atau "calc" -> menentukan
-  // action data-attribute supaya handler tahu form mana yang diubah.
   function packageChipsHtml(currentQty, isCustom, targetState){
     var action = targetState === "calc" ? "pick-package-calc" : "pick-package";
     var chips = CONFIG.rates.packages.map(function(p){
@@ -443,9 +460,6 @@
     });
   }
 
-  // Payload dipangkas hanya field yang benar-benar dibutuhkan backend untuk
-  // upload bukti transfer (backend membaca sisanya langsung dari sheet),
-  // supaya upload lebih ringan/cepat.
   function uploadProofFile(orderId, file){
     return readFileAsBase64(file).then(function(base64){
       return fetch(CONFIG.webAppUrl, {
@@ -465,9 +479,6 @@
     }).catch(function(){ /* pakai nilai default kalau gagal, tidak masalah */ });
   }
 
-  // Antrean "riil" (jumlah video dari order yang SUDAH LUNAS & sedang
-  // dikerjakan) — dipakai untuk simulasi di tab Kalkulator supaya calon
-  // klien punya gambaran jujur, bukan janji pasti.
   function fetchQueueForCalc(){
     if(state.calc._queueFetched || state.calc._queueLoading) return;
     if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
@@ -487,7 +498,7 @@
     if(state.tab === "order") html += renderOrderTab();
     else if(state.tab === "status") html += renderStatusTab();
     else if(state.tab === "calc") html += renderCalcTab();
-    else if(state.tab === "warranty") html += renderWarrantyTab(); // [BARU]
+    else if(state.tab === "warranty") html += renderWarrantyTab();
     html += '</main><footer class="foot">Sistem terenkripsi aman &mdash; Data Anda tersimpan secara privat.</footer>';
     c.innerHTML = html; attachHandlers(); restartCountdownTicker();
   }
@@ -512,7 +523,7 @@
         '</div>';
     }
     var priceEst = computePrice(f.qty);
-    var promoDiscount = f.promo ? Math.min(f.promo.discount, priceEst.total) : 0; // [BARU] pratinjau; backend tetap yang final
+    var promoDiscount = f.promo ? Math.min(f.promo.discount, priceEst.total) : 0;
     var finalTotal = priceEst.total - promoDiscount;
     var estRows = priceEst.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
     var submitting = !!f._submitting;
@@ -541,14 +552,17 @@
           '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
         (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' +
           '<div class="eta-note pending">\u23F3 Setelah admin mengonfirmasi pembayaranmu, jadwal pengerjaan akan langsung terkunci dan tanggal target selesai muncul otomatis di sini.</div>' : "") +
-        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queuedVideosAhead) : "") +
+        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queuedVideosAhead, "Animasimu sedang digarap oleh tim kami!") : "") +
         '</div>';
 
       var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
       var driveUI = showDriveLink ? '<div class="drive-box"><div style="flex:1;"><label>File hasil animasi</label><div class="drive-note">Tautan folder Google Drive Anda sudah tersedia.</div></div><a href="'+escapeHtml(p.googleDriveLink)+'" target="_blank" rel="noopener" class="btn btn-drive">Buka Folder</a></div>' : '';
 
-      result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div><div><label>Tema animasi</label><div class="detail-value">'+(p.theme ? escapeHtml(p.theme) : '<span style="color:var(--ink-faint); font-weight:400; font-style:italic;">Menunggu review tim</span>')+'</div></div></div>' + driveUI + warrantyLinkHtml(p) + '</div>';
+      result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div></div>' + driveUI + warrantyLinkHtml(p) + '</div>';
       if(p.price) result += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div>'+discountRowHtml(p.price)+'<div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
+
+      // [BARU] Riwayat klaim revisi untuk kode order ini (kalau ada).
+      result += renderRevisionCards(p.revisions);
     }
     return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres pengerjaan dan unduh hasil proyek Anda.</p>' + box + result;
   }
@@ -578,7 +592,6 @@
 
     clickAc("toggle-platform", function(el){ var val = el.getAttribute("data-val"), idx = state.orderForm.platforms.indexOf(val); if(idx>-1) state.orderForm.platforms.splice(idx,1); else state.orderForm.platforms.push(val); render(); });
 
-    // --- Pemilihan paket (tab Buat Pesanan) ---
     clickAc("pick-package", function(el){
       var val = el.getAttribute("data-qty");
       var f = state.orderForm;
@@ -588,7 +601,6 @@
     });
     bindNum("f-qty-custom", function(v){ state.orderForm.qty = Math.max(Math.round(v), customMinQty()); render(); });
 
-    // --- Pemilihan paket (tab Kalkulator) ---
     clickAc("pick-package-calc", function(el){
       var val = el.getAttribute("data-qty");
       var cst = state.calc;
@@ -606,7 +618,7 @@
       if(!f._pendingId) f._pendingId = uid();
       var id = f._pendingId;
       var price = computePrice(f.qty);
-      var payload = { action:"create", id:id, clientName:f.clientName.trim(), clientPhone:f.clientPhone.trim(), platforms:f.platforms.slice(), qty:f.qty, total: price.total, promoCode:(f.promoCode||"").trim() }; // [BARU] promoCode (backend yang menghitung total final)
+      var payload = { action:"create", id:id, clientName:f.clientName.trim(), clientPhone:f.clientPhone.trim(), platforms:f.platforms.slice(), qty:f.qty, total: price.total, promoCode:(f.promoCode||"").trim() };
       f._submitting = true; render();
       fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) })
         .then(function(res){ return res.json(); })
@@ -630,11 +642,10 @@
         });
     });
 
-    // --- [BARU] Kode promo ---
     var promoEl = document.getElementById("f-promo");
     if(promoEl) promoEl.addEventListener("input", function(){
       var f = state.orderForm; f.promoCode = promoEl.value;
-      if(f.promo || f.promoMsg){ // kode diubah setelah diterapkan -> batalkan diskon lama
+      if(f.promo || f.promoMsg){
         f.promo = null; f.promoMsg = null; render();
         var el = document.getElementById("f-promo"); if(el){ el.focus(); var n = el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
       }
@@ -651,7 +662,6 @@
       }).catch(function(){ f.promoLoading = false; f.promo = null; f.promoMsg = "Gagal mengecek kode promo. Periksa koneksi internet Anda."; render(); });
     });
 
-    // --- [BARU] Klaim garansi ---
     bindInp("w-id", function(v){ state.warranty.id = v; });
     bindInp("w-file-name", function(v){ state.warranty.rejectedFile = v; });
     var wf = document.getElementById("warranty-file");
