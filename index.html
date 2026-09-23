@@ -149,7 +149,7 @@
   .claim-steps { margin: 0 0 20px; padding-left: 20px; color: var(--ink-soft); font-size: 14px; }
   .claim-steps li { margin-bottom: 4px; }
 
-  /* [BARU] Blok status revisi di halaman Lacak Status */
+  /* Blok status revisi di halaman Lacak Status */
   .revision-card { border-left: 3px solid var(--purple-border); }
   .revision-title { display: flex; align-items: center; gap: 8px; }
   .revision-badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em; }
@@ -175,9 +175,16 @@
   // sebelum sinkronisasi dari backend selesai). Nilai sesungguhnya
   // disinkronkan otomatis dari backend (CONFIG di Code.gs) tiap kali app
   // dibuka, supaya kamu cukup ubah angka di SATU tempat (backend/Pengaturan).
+  //
+  // PENTING soal webAppUrl: URL ini adalah URL DEPLOYMENT Apps Script Anda.
+  // Kalau Anda membuat DEPLOYMENT BARU (bukan "New version" pada deployment
+  // yang sudah ada), URL-nya berubah dan HARUS di-update di sini, kalau
+  // tidak seluruh halaman ini akan gagal terhubung ke server ("Gagal
+  // terhubung ke server. Periksa koneksi internet Anda."). Ini adalah
+  // penyebab paling umum aplikasi "error" padahal kodenya benar.
   // =========================================================================
   var CONFIG = {
-    webAppUrl: "https://script.google.com/macros/s/AKfycbzR9Jg17qMmq_oXzhoEwVWazm2dNo-Yfr_wSilIVXjOZ9x1ccJJRe3Osq3_qVuAjGDUZA/exec",
+    webAppUrl: "https://script.google.com/macros/s/AKfycbyLudpiOVp4qlKIQOQPI4HDH94xNYUmfgca7uCBHGrrHVrX-fVaRKqHvKqtu3x6CjNKJg/exec",
     businessName: "Order Animasi Microstock",
     currency: "Rp",
     rates: {
@@ -188,8 +195,8 @@
       ],
       overflowPricePerVideo: 5000
     },
-    // [UBAH] disamakan dengan default backend (videosPerDay: 20) supaya
-    // simulasi ETA sebelum sinkronisasi selesai tidak menyesatkan.
+    // disamakan dengan default backend (videosPerDay: 20) supaya simulasi
+    // ETA sebelum sinkronisasi selesai tidak menyesatkan.
     production: { videosPerDay: 20, workWindowStartHour: 19, workWindowEndHour: 0, setupBufferHours: 0.5 },
     timezoneOffsetHours: 7, // Asia/Jakarta (WIB), tidak ada DST
     maxProofSizeBytes: 4 * 1024 * 1024,
@@ -277,8 +284,6 @@
       '</div>';
   }
 
-  // [UBAH] introText & extraClass dibuat parametrik supaya bisa dipakai
-  // ulang untuk blok "Order Dikerjakan" maupun blok status revisi.
   function renderEtaLocked(targetIso, queuedAhead, introText, extraClass){
     var cls = 'eta-note' + (extraClass ? ' ' + extraClass : '');
     if(!targetIso){
@@ -346,8 +351,8 @@
     return '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="goto-warranty" data-id="'+escapeHtml(p.id)+'">Ajukan klaim garansi</button></div>';
   }
 
-  // [BARU] Blok kartu status revisi, ditampilkan di halaman Lacak Status
-  // untuk setiap klaim yang pernah diajukan pada kode order ini.
+  // Blok kartu status revisi, ditampilkan di halaman Lacak Status untuk
+  // setiap klaim yang pernah diajukan pada kode order ini.
   function revisionStatusBadge(status){
     var key = String(status||"").toLowerCase();
     var label = status || "Menunggu";
@@ -561,7 +566,7 @@
       result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div></div>' + driveUI + warrantyLinkHtml(p) + '</div>';
       if(p.price) result += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div>'+discountRowHtml(p.price)+'<div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
 
-      // [BARU] Riwayat klaim revisi untuk kode order ini (kalau ada).
+      // Riwayat klaim revisi untuk kode order ini (kalau ada).
       result += renderRevisionCards(p.revisions);
     }
     return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres pengerjaan dan unduh hasil proyek Anda.</p>' + box + result;
