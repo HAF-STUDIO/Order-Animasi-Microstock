@@ -387,7 +387,7 @@
   function apiGet(params){
     params._t = Date.now();
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }).join("&");
-    return fetchJson(CONFIG.webAppUrl + "?" + qs, {}, { maxAttempts:2, timeoutMs:8000 });
+    return fetchJson(CONFIG.webAppUrl + "?" + qs, {}, { maxAttempts:2, timeoutMs:15000 });
   }
 
   function promoFieldHtml(f){
@@ -549,7 +549,7 @@
     if(state.calc._queueFetched || state.calc._queueLoading) return;
     if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
     state.calc._queueLoading = true;
-    fetchJson(CONFIG.webAppUrl + "?action=queue", {}, { maxAttempts:2, timeoutMs:8000 }).then(function(data){
+    fetchJson(CONFIG.webAppUrl + "?action=queue", {}, { maxAttempts:2, timeoutMs:15000 }).then(function(data){
       state.calc._queueLoading = false; state.calc._queueFetched = true;
       state.calc.queuedHoursAhead = (data && typeof data.queuedHoursAhead === "number") ? data.queuedHoursAhead :
         ((data && typeof data.queuedVideosAhead === "number") ? data.queuedVideosAhead * hoursPerVideoSim() : 0);
@@ -832,7 +832,7 @@
     state.statusUploading = false;
     render();
     var url = CONFIG.webAppUrl + "?id=" + encodeURIComponent(id) + "&_t=" + Date.now();
-    fetchJson(url, {}, { maxAttempts:2, timeoutMs:8000 }).then(function(data){
+    fetchJson(url, {}, { maxAttempts:2, timeoutMs:15000 }).then(function(data){
       if(requestId !== state.statusRequestId) return;
       state.statusLoading = false;
       if(data && data.error){
