@@ -9,156 +9,142 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #12162B; --navy-soft: #1D2240;
-    --paper: #F4F5F9; --panel: #FFFFFF; --panel-alt: #EDEFF6;
-    --border: #E1E4EE; --border-strong: #C7CCDE;
-    --ink: #12131A; --ink-soft: #4A4D5E; --ink-faint: #868AA0;
-    --accent: #FFA733; --accent-strong: #E88F12; --accent-ink: #17181F;
-    --teal: #0E9C90; --teal-bg: #E7F7F5; --teal-border: #B7E7E1;
-    --coral: #E8503D; --coral-bg: #FDEEEC; --coral-border: #F5C2BA;
-    --blue-bg: #EAF0FF; --blue-border: #C7D6FA; --blue-ink: #1E3A8A;
-    --purple-bg: #F1EEFF; --purple-border: #D9CFFB; --purple-ink: #4C2E9C;
-    --radius-lg: 18px; --radius-md: 12px; --radius-sm: 8px;
-    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif;
-    --shadow-card: 0 1px 2px rgba(18,22,43,0.04), 0 8px 24px -12px rgba(18,22,43,0.12);
+    --navy:#12162B; --navy-soft:#1D2240;
+    --paper:#F4F5F9; --panel:#FFFFFF; --panel-alt:#EDEFF6;
+    --border:#E1E4EE; --border-strong:#C7CCDE;
+    --ink:#12131A; --ink-soft:#4A4D5E; --ink-faint:#868AA0;
+    --accent:#FFA733; --accent-strong:#E88F12; --accent-ink:#17181F;
+    --teal:#0E9C90; --teal-bg:#E7F7F5; --teal-border:#B7E7E1;
+    --coral:#E8503D; --coral-bg:#FDEEEC; --coral-border:#F5C2BA;
+    --blue-bg:#EAF0FF; --blue-border:#C7D6FA; --blue-ink:#1E3A8A;
+    --purple-bg:#F1EEFF; --purple-border:#D9CFFB; --purple-ink:#4C2E9C;
+    --r-lg:18px; --r-md:12px; --r-sm:8px;
+    --f-d:'Space Grotesk',sans-serif; --f-b:'Inter',sans-serif;
+    --sh:0 1px 2px rgba(18,22,43,0.04),0 8px 24px -12px rgba(18,22,43,0.12);
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15.5px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-  #app { max-width: 720px; margin: 0 auto; }
-  main, header.top, nav.tabs, footer.foot { max-width: 720px; margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--f-b);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  #app{max-width:720px;margin:0 auto}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px;border-radius:4px}
+  .top-stripe{height:5px;background:repeating-linear-gradient(115deg,var(--accent) 0 16px,var(--navy) 16px 32px)}
 
-  a { color: inherit; }
-  :focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; border-radius: 4px; }
+  header.top{background:var(--navy);color:#fff;padding:26px 20px 24px;border-radius:0 0 22px 22px;box-shadow:0 12px 28px -18px rgba(18,22,43,.55);max-width:720px;margin:0 auto}
+  header.top .top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  header.top .brand-name{font-family:var(--f-d);font-weight:700;font-size:24px;margin:0 0 6px 0;color:#fff}
+  header.top .tagline{color:#A9AEC7;font-size:14px;margin:0}
+  header.top .frame-mark{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#E7E9F5;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:999px;padding:7px 14px 7px 11px;white-space:nowrap}
+  header.top .frame-mark .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
 
-  .top-stripe { height: 5px; background: repeating-linear-gradient(115deg, var(--accent) 0 16px, var(--navy) 16px 32px); }
+  nav.tabs{display:flex;gap:8px;margin:18px auto 28px;padding:16px 20px 0;overflow-x:auto;scrollbar-width:none;max-width:720px}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{background:var(--panel);border:1px solid var(--border);color:var(--ink-soft);font-family:var(--f-b);font-size:14.5px;font-weight:600;padding:11px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:.15s;flex:none}
+  nav.tabs button:hover{border-color:var(--border-strong);color:var(--ink)}
+  nav.tabs button.active{color:var(--accent-ink);border-color:var(--accent);background:var(--accent);box-shadow:0 4px 10px -4px rgba(232,143,18,.55)}
 
-  header.top { background: var(--navy); color: #fff; padding: 26px 20px 24px; margin-bottom: 0; border-radius: 0 0 22px 22px; box-shadow: 0 12px 28px -18px rgba(18,22,43,0.55); }
-  header.top .top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  header.top .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -0.01em; margin: 0 0 6px 0; color: #fff; }
-  header.top .tagline { color: #A9AEC7; font-size: 14px; margin: 0; font-weight: 400; }
-  header.top .frame-mark { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: #E7E9F5; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px 7px 11px; white-space: nowrap; }
-  header.top .frame-mark .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+  main{max-width:720px;margin:0 auto;padding:0 20px}
+  h2.panel-title{font-family:var(--f-d);font-size:22px;font-weight:700;margin:0 0 6px 0}
+  p.panel-sub{color:var(--ink-soft);font-size:14.5px;margin:0 0 20px 0}
 
-  nav.tabs { display: flex; gap: 8px; margin: 18px auto 28px; padding-top: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  nav.tabs::-webkit-scrollbar { display: none; }
-  nav.tabs button { background: var(--panel); border: 1px solid var(--border); color: var(--ink-soft); font-family: var(--font-body); font-size: 14.5px; font-weight: 600; padding: 11px 18px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: 0.15s ease; flex: none; }
-  nav.tabs button:hover { border-color: var(--border-strong); color: var(--ink); }
-  nav.tabs button.active { color: var(--accent-ink); border-color: var(--accent); background: var(--accent); box-shadow: 0 4px 10px -4px rgba(232,143,18,0.55); }
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;margin-bottom:18px;box-shadow:var(--sh)}
+  .box-title{font-weight:700;color:var(--ink);margin-bottom:12px;font-size:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:620px){.grid2{grid-template-columns:1fr;gap:4px}}
 
-  h2.panel-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 0 0 6px 0; letter-spacing: -0.01em; }
-  p.panel-sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 20px 0; }
+  label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:7px;font-weight:600}
+  .field{margin-bottom:18px}
+  input[type=text],input[type=number],input[type=tel],textarea{width:100%;background:var(--panel-alt);border:1px solid var(--border);color:var(--ink);border-radius:var(--r-sm);padding:13px 14px;font-family:var(--f-b);font-size:16px;min-height:48px;transition:.15s}
+  textarea{resize:vertical;min-height:92px}
+  input:focus,textarea:focus{outline:none;background:var(--panel);border-color:var(--accent-strong);box-shadow:0 0 0 4px rgba(255,167,51,.18)}
+  input::placeholder{color:var(--ink-faint)}
+  input[type=file]{width:100%;background:var(--panel-alt);border:1px dashed var(--border-strong);color:var(--ink-soft);border-radius:var(--r-sm);padding:12px 14px;font-family:var(--f-b);font-size:14px;min-height:48px}
+  .field-note{font-size:12.5px;color:var(--ink-faint);margin-top:6px}
+  button.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
 
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 18px; box-shadow: var(--shadow-card); }
-  .box-title { font-weight: 700; color: var(--ink); margin-bottom: 12px; font-size: 16px; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 620px) { .grid2 { grid-template-columns: 1fr; gap: 4px; } }
+  .chip-group{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{border:1px solid var(--border);background:var(--panel);border-radius:999px;padding:10px 16px;font-size:14px;cursor:pointer;color:var(--ink-soft);user-select:none;font-weight:500;transition:.15s;min-height:40px;display:inline-flex;align-items:center}
+  .chip:hover{border-color:var(--border-strong)}
+  .chip.selected{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:600}
 
-  label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 7px; font-weight: 600; }
-  .field { margin-bottom: 18px; }
-  input[type=text], input[type=number], input[type=tel], input[type=url], textarea {
-    width: 100%; background: var(--panel-alt); border: 1px solid var(--border); color: var(--ink);
-    border-radius: var(--radius-sm); padding: 13px 14px; font-family: var(--font-body); font-size: 16px;
-    min-height: 48px; transition: 0.15s ease;
-  }
-  textarea { resize: vertical; min-height: 92px; }
-  input:focus, textarea:focus { outline: none; background: var(--panel); border-color: var(--accent-strong); box-shadow: 0 0 0 4px rgba(255,167,51,0.18); }
-  input::placeholder, textarea::placeholder { color: var(--ink-faint); }
-  input[type=file] { width: 100%; background: var(--panel-alt); border: 1px dashed var(--border-strong); color: var(--ink-soft); border-radius: var(--radius-sm); padding: 12px 14px; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
-  .field-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 6px; }
-  button.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+  button.btn{font-family:var(--f-b);font-weight:700;font-size:15.5px;border-radius:var(--r-sm);padding:14px 24px;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;justify-content:center;min-height:50px}
+  button.btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 12px -4px rgba(232,143,18,.5);width:100%}
+  button.btn-primary:hover{background:var(--accent-strong);transform:translateY(-1px)}
+  button.btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--border-strong);width:auto}
+  button.btn-ghost:hover{background:var(--panel-alt);color:var(--ink)}
+  button.btn-small{padding:10px 18px;font-size:14px;width:auto;min-height:42px}
 
-  .chip-group { display: flex; flex-wrap: wrap; gap: 9px; }
-  .chip { border: 1px solid var(--border); background: var(--panel); border-radius: 999px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: var(--ink-soft); user-select: none; font-weight: 500; transition: 0.15s ease; min-height: 40px; display: inline-flex; align-items: center; }
-  .chip:hover { border-color: var(--border-strong); }
-  .chip.selected { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 600; }
+  .msg{padding:14px 18px;border-radius:var(--r-sm);font-size:14.5px;margin-bottom:18px;font-weight:500}
+  .msg-error{background:var(--coral-bg);border:1px solid var(--coral-border);color:#9C2A1D}
+  .msg-info{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue-ink)}
+  .msg-warn{background:#FFF7E6;border:1px solid #FFE0A3;color:#8A5A00}
 
-  button.btn { font-family: var(--font-body); font-weight: 700; font-size: 15.5px; border-radius: var(--radius-sm); padding: 14px 24px; cursor: pointer; border: 1px solid transparent; transition: 0.15s ease; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; }
-  button.btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 4px 12px -4px rgba(232,143,18,0.5); width: 100%; }
-  button.btn-primary:hover { background: var(--accent-strong); transform: translateY(-1px); box-shadow: 0 6px 16px -4px rgba(232,143,18,0.55); }
-  button.btn-ghost { background: transparent; color: var(--ink-soft); border-color: var(--border-strong); width: auto; }
-  button.btn-ghost:hover { background: var(--panel-alt); color: var(--ink); }
-  button.btn-small { padding: 10px 18px; font-size: 14px; width: auto; min-height: 42px; }
+  .estimate-box{background:var(--panel-alt);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r-md);padding:20px 22px}
+  .estimate-row{display:flex;justify-content:space-between;gap:12px;font-size:14.5px;padding:6px 0;color:var(--ink-soft)}
+  .estimate-row.total{color:var(--ink);font-weight:700;font-size:18px;border-top:1px solid var(--border-strong);margin-top:10px;padding-top:14px}
+  .estimate-row.discount{color:var(--teal);font-weight:600}
 
-  .msg { padding: 14px 18px; border-radius: var(--radius-sm); font-size: 14.5px; margin-bottom: 18px; font-weight: 500; }
-  .msg-error { background: var(--coral-bg); border: 1px solid var(--coral-border); color: #9C2A1D; }
-  .msg-info { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-ink); }
+  .id-display{font-family:var(--f-d);font-size:28px;font-weight:700;letter-spacing:.04em;background:var(--panel-alt);border:2px dashed var(--border-strong);color:var(--navy);padding:20px;border-radius:var(--r-md);text-align:center;margin:4px 0 20px;word-break:break-all}
 
-  .estimate-box { background: var(--panel-alt); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius-md); padding: 20px 22px; }
-  .estimate-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; padding: 6px 0; color: var(--ink-soft); }
-  .estimate-row.total { color: var(--ink); font-weight: 700; font-size: 18px; border-top: 1px solid var(--border-strong); margin-top: 10px; padding-top: 14px; }
+  .stepper{display:flex;margin:30px 0 22px;position:relative}
+  .step{flex:1;text-align:center;position:relative;min-width:0;padding:0 2px}
+  .step .dot{width:32px;height:32px;border-radius:50%;background:var(--panel);border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:13px;font-weight:700;color:var(--ink-faint);position:relative;z-index:2;transition:.3s}
+  .step .line{position:absolute;top:15px;left:-50%;width:100%;height:3px;background:var(--border-strong);z-index:1}
+  .step:first-child .line{display:none}
+  .step.done .dot{background:var(--navy);border-color:var(--navy);color:#fff}
+  .step.done .line{background:var(--navy)}
+  .step.active .line{background:var(--navy)}
+  .step.active .dot{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 5px var(--teal-bg)}
+  .step .label{font-size:11.5px;color:var(--ink-faint);font-weight:500;line-height:1.3}
+  .step.active .label{color:var(--teal);font-weight:700}
+  .step.done .label{color:var(--ink);font-weight:600}
+  @media(max-width:480px){.step .label{font-size:10px}.step .dot{width:26px;height:26px;font-size:11.5px}.step .line{top:12px}}
 
-  .flat-rate-note { display: flex; justify-content: space-between; align-items: center; background: var(--panel-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 12px; font-weight: 600; color: var(--ink); }
+  .cancelled-banner{background:var(--coral-bg);border:1px solid var(--coral-border);color:#9C2A1D;padding:14px 18px;border-radius:var(--r-md);font-size:15px;margin:4px 0 20px;font-weight:600}
+  .drive-box{margin-top:22px;padding:18px 20px;background:var(--teal-bg);border:1px solid var(--teal-border);border-radius:var(--r-md);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .drive-box label{color:#0B6B62;margin-bottom:4px}
+  .drive-box .drive-note{font-size:13.5px;color:#0E7C71;font-weight:500}
+  .btn-drive{background:var(--teal);color:#fff;border-color:var(--teal);box-shadow:0 4px 12px -4px rgba(14,156,144,.5);width:auto;text-decoration:none}
 
-  .id-display { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: 0.04em; background: var(--panel-alt); border: 2px dashed var(--border-strong); color: var(--navy); padding: 20px; border-radius: var(--radius-md); text-align: center; margin: 4px 0 20px; word-break: break-all; }
+  .pay-box{margin-top:4px;padding:20px 22px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--r-md)}
+  .pay-box .pay-title{font-weight:700;color:var(--blue-ink);margin-bottom:12px;font-size:15px}
+  .pay-box .bank-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:14.5px;color:var(--ink-soft)}
+  .pay-box .bank-row .val{font-weight:700;color:var(--blue-ink)}
+  .verif-note{background:var(--teal-bg);border:1px solid var(--teal-border);color:#0B6B62;padding:14px 18px;border-radius:var(--r-md);font-size:14.5px;font-weight:600;margin:4px 0 20px}
 
-  .stepper { display: flex; margin: 30px 0 22px; position: relative; }
-  .step { flex: 1; text-align: center; position: relative; min-width: 0; padding: 0 2px; }
-  .step .dot { width: 32px; height: 32px; border-radius: 50%; background: var(--panel); border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 13px; font-weight: 700; color: var(--ink-faint); position: relative; z-index: 2; transition: 0.3s ease; }
-  .step .line { position: absolute; top: 15px; left: -50%; width: 100%; height: 3px; background: var(--border-strong); z-index: 1; }
-  .step:first-child .line { display: none; }
-  .step.done .dot { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .step.done .line { background: var(--navy); }
-  .step.active .line { background: var(--navy); }
-  .step.active .dot { background: var(--teal); border-color: var(--teal); color: #fff; box-shadow: 0 0 0 5px var(--teal-bg); }
-  .step .label { font-size: 11.5px; color: var(--ink-faint); font-weight: 500; line-height: 1.3; }
-  .step.active .label { color: var(--teal); font-weight: 700; }
-  .step.done .label { color: var(--ink); font-weight: 600; }
-  @media (max-width: 480px) { .step .label { font-size: 10px; } .step .dot { width: 26px; height: 26px; font-size: 11.5px; } .step .line { top: 12px; } }
+  .eta-note{background:linear-gradient(135deg,var(--blue-bg),#F1EEFF);border:1px solid var(--blue-border);color:var(--blue-ink);padding:16px 18px;border-radius:var(--r-md);font-size:14.5px;font-weight:500;margin:4px 0 20px}
+  .eta-note .eta-sub{display:block;font-size:12.5px;color:#3455a8;font-weight:500;margin-top:6px}
+  .eta-note.pending{background:var(--panel-alt);border:1px solid var(--border);color:var(--ink-soft)}
+  .eta-note.claim{background:linear-gradient(135deg,var(--purple-bg),#FDEEFF);border-color:var(--purple-border);color:var(--purple-ink)}
+  .countdown-badge{margin-top:12px;display:inline-flex;align-items:center;gap:7px;font-weight:700;background:rgba(255,255,255,.7);padding:8px 15px;border-radius:999px;font-size:13.5px;color:var(--blue-ink);border:1px solid var(--blue-border)}
 
-  .cancelled-banner { background: var(--coral-bg); border: 1px solid var(--coral-border); color: #9C2A1D; padding: 14px 18px; border-radius: var(--radius-md); font-size: 15px; margin: 4px 0 20px; font-weight: 600; }
-  .drive-box { margin-top: 22px; padding: 18px 20px; background: var(--teal-bg); border: 1px solid var(--teal-border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
-  .drive-box label { color: #0B6B62; margin-bottom: 4px; }
-  .drive-box .drive-note { font-size: 13.5px; color: #0E7C71; font-weight: 500; }
-  .btn-drive { background: var(--teal); color: #fff; border-color: var(--teal); box-shadow: 0 4px 12px -4px rgba(14,156,144,0.5); width: auto; text-decoration: none; }
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+  @media(max-width:480px){.detail-grid{grid-template-columns:1fr;gap:14px}}
+  .detail-value{color:var(--ink);font-weight:600;font-size:15px}
 
-  .pay-box { margin-top: 4px; padding: 20px 22px; background: var(--blue-bg); border: 1px solid var(--blue-border); border-radius: var(--radius-md); }
-  .pay-box .pay-title { font-weight: 700; color: var(--blue-ink); margin-bottom: 12px; font-size: 15px; }
-  .pay-box .bank-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 14.5px; color: var(--ink-soft); }
-  .pay-box .bank-row .val { font-weight: 700; color: var(--blue-ink); }
-  .verif-note { background: var(--teal-bg); border: 1px solid var(--teal-border); color: #0B6B62; padding: 14px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 600; margin: 4px 0 20px; }
+  footer.foot{max-width:720px;margin:44px auto 60px;text-align:center;color:var(--ink-faint);font-size:13px;padding:0 20px}
 
-  .eta-note { background: linear-gradient(135deg, var(--blue-bg), #F1EEFF); border: 1px solid var(--blue-border); color: var(--blue-ink); padding: 16px 18px; border-radius: var(--radius-md); font-size: 14.5px; font-weight: 500; margin: 4px 0 20px; }
-  .eta-note strong { font-weight: 700; }
-  .eta-note .eta-sub { display: block; font-size: 12.5px; color: #3455a8; font-weight: 500; margin-top: 6px; }
-  .eta-note.pending { background: var(--panel-alt); border: 1px solid var(--border); color: var(--ink-soft); }
-  .countdown-badge { margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; font-weight: 700; background: rgba(255,255,255,0.7); padding: 8px 15px; border-radius: 999px; font-size: 13.5px; color: var(--blue-ink); border: 1px solid var(--blue-border); }
+  .promo-row{display:flex;gap:10px}
+  .promo-row input{flex:1;text-transform:uppercase}
+  .promo-row input::placeholder{text-transform:none}
+  .promo-msg{font-size:13px;font-weight:600;margin-top:8px}
+  .promo-msg.ok{color:var(--teal)}.promo-msg.err{color:#9C2A1D}
+  .repeat-note{background:var(--teal-bg);border:1px solid var(--teal-border);color:#0B6B62;padding:14px 18px;border-radius:var(--r-md);font-size:14px;font-weight:500;margin:0 0 18px}
+  .file-picked{font-size:12.5px;color:var(--teal);font-weight:600;margin-top:6px;word-break:break-all}
 
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
-  @media (max-width: 480px) { .detail-grid { grid-template-columns: 1fr; gap: 14px; } }
-  .detail-value { color: var(--ink); font-weight: 600; font-size: 15px; }
+  .claim-card{border-left:3px solid var(--purple-border)}
+  .claim-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .claim-badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:uppercase}
+  .claim-badge.menunggu{background:var(--panel-alt);color:var(--ink-soft)}
+  .claim-badge.dikerjakan{background:var(--purple-bg);color:var(--purple-ink)}
+  .claim-badge.selesai{background:var(--teal-bg);color:#0B6B62}
+  .claim-badge.ditolak{background:var(--coral-bg);color:#9C2A1D}
 
-  footer.foot { margin: 44px auto 60px; text-align: center; color: var(--ink-faint); font-size: 13px; }
-
-  @media (max-width: 640px) {
-    header.top { border-radius: 0 0 16px 16px; padding: 22px 18px 20px; }
-    .card { padding: 20px; border-radius: var(--radius-md); }
-    h2.panel-title { font-size: 20px; }
-  }
-
-  .promo-row { display: flex; gap: 10px; }
-  .promo-row input { flex: 1; text-transform: uppercase; }
-  .promo-row input::placeholder { text-transform: none; }
-  .promo-msg { font-size: 13px; font-weight: 600; margin-top: 8px; }
-  .promo-msg.ok { color: var(--teal); }
-  .promo-msg.err { color: #9C2A1D; }
-  .estimate-row.discount { color: var(--teal); font-weight: 600; }
-  .repeat-note { background: var(--teal-bg); border: 1px solid var(--teal-border); color: #0B6B62; padding: 14px 18px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; margin: 0 0 18px; }
-  .repeat-note strong { font-weight: 700; }
-  .file-picked { font-size: 12.5px; color: var(--teal); font-weight: 600; margin-top: 6px; word-break: break-all; }
-  .claim-steps { margin: 0 0 20px; padding-left: 20px; color: var(--ink-soft); font-size: 14px; }
-  .claim-steps li { margin-bottom: 4px; }
-
-  /* Status klaim garansi pada halaman Lacak Status */
-  .claim-card { border-left: 3px solid var(--purple-border); }
-  .claim-title { display: flex; align-items: center; gap: 8px; }
-  .claim-badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em; }
-  .claim-badge.menunggu { background: var(--panel-alt); color: var(--ink-soft); }
-  .claim-badge.dikerjakan { background: var(--purple-bg); color: var(--purple-ink); }
-  .claim-badge.selesai { background: var(--teal-bg); color: #0B6B62; }
-  .claim-badge.ditolak { background: var(--coral-bg); color: #9C2A1D; }
-  .eta-note.claim { background: linear-gradient(135deg, var(--purple-bg), #FDEEFF); border-color: var(--purple-border); color: var(--purple-ink); }
-  .eta-note.claim .countdown-badge { color: var(--purple-ink); border-color: var(--purple-border); }
+  .rules-box{background:#FFF7E6;border:1px solid #FFE0A3;border-radius:var(--r-md);padding:16px 20px;margin-bottom:18px}
+  .rules-box .rules-title{font-weight:700;color:#8A5A00;margin-bottom:10px;font-size:14.5px}
+  .rules-box ul{margin:0;padding-left:20px;color:#6B4A00;font-size:13.5px;line-height:1.7}
+  .rules-box li{margin-bottom:2px}
+  .rules-box .quota-line{display:flex;justify-content:space-between;font-weight:700;color:#8A5A00;margin-top:12px;padding-top:12px;border-top:1px dashed #FFE0A3}
 </style>
 </head>
 <body>
@@ -170,18 +156,7 @@
   "use strict";
 
   // =========================================================================
-  // KONFIGURASI APLIKASI
-  // Nilai production & rates di sini hanyalah FALLBACK (dipakai sesaat
-  // sebelum sinkronisasi dari backend selesai). Nilai sesungguhnya
-  // disinkronkan otomatis dari backend (CONFIG di Code.gs) tiap kali app
-  // dibuka, supaya kamu cukup ubah angka di SATU tempat (backend/Pengaturan).
-  //
-  // PENTING soal webAppUrl: URL ini adalah URL DEPLOYMENT Apps Script Anda.
-  // Kalau Anda membuat DEPLOYMENT BARU (bukan "New version" pada deployment
-  // yang sudah ada), URL-nya berubah dan HARUS di-update di sini, kalau
-  // tidak seluruh halaman ini akan gagal terhubung ke server ("Gagal
-  // terhubung ke server. Periksa koneksi internet Anda."). Ini adalah
-  // penyebab paling umum aplikasi "error" padahal kodenya benar.
+  // KONFIGURASI — FALLBACK (di-sync dari backend saat halaman dibuka)
   // =========================================================================
   var CONFIG = {
     webAppUrl: "https://script.google.com/macros/s/AKfycbwZVWz87uMWL7_M6buAvugqiYItZB72R74LmXCU9n2SoGKI2vdRANDuGbidbwSbm8h_/exec",
@@ -195,672 +170,623 @@
       ],
       overflowPricePerVideo: 5000
     },
-    // disamakan dengan default backend (videosPerDay: 20) supaya simulasi
-    // ETA sebelum sinkronisasi selesai tidak menyesatkan.
     production: { videosPerDay: 20, workWindowStartHour: 19, workWindowEndHour: 0, setupBufferHours: 0.5 },
-    timezoneOffsetHours: 7, // Asia/Jakarta (WIB), tidak ada DST
+    warranty: { enabled: true, windowDays: 7, maxPercentOfOrder: 20, maxClaimsPerOrder: 10, minClaims: 1 },
+    timezoneOffsetHours: 7,
     maxProofSizeBytes: 4 * 1024 * 1024,
-    payment: {
-      bankName: "BCA",
-      accountNumber: "5410769257",
-      accountName: "Hersani Ardia Firmansyah"
-    }
+    payment: { bankName: "BCA", accountNumber: "5410769257", accountName: "Hersani Ardia Firmansyah" }
   };
-  // =========================================================================
 
   var STEP_ORDER = ["Brief Diterima","Pembayaran","Verifikasi","Order Dikerjakan","Selesai"];
-  var PLATFORMS_KNOWN = ["Adobe Stock","Shutterstock"];
+  var PLATFORMS = ["Adobe Stock","Shutterstock"];
+
+  // =========================================================================
+  // STATE
+  // =========================================================================
+  var state = {
+    tab: "order",
+    orderForm: freshOrderForm(),
+    calc: freshCalc(),
+    statusLookupId: "",
+    statusResult: null,
+    statusError: "",
+    statusLoading: false,
+    statusRequestId: 0,
+    statusProofError: "",
+    statusUploading: false,
+    orderMsg: null,
+    warranty: freshWarranty(),
+    warrantyElig: null
+  };
 
   function uid(){ return "PRJ-" + Date.now().toString(36).toUpperCase().slice(-4) + Math.random().toString(36).toUpperCase().slice(2,6); }
-
-  var state = { tab: "order", orderForm: freshOrderForm(), calc: freshCalc(), statusLookupId: "", statusResult: null, statusError: "", statusLoading: false, statusRequestId: 0, statusProofError: "", statusUploading: false, orderMsg: null, warranty: freshWarranty() };
-
-  function freshOrderForm(){ return { clientName:"", clientPhone:"", platforms:[], qty:10, isCustom:false, _pendingId:null, _submitting:false, promoCode:"", promo:null, promoMsg:null, promoLoading:false }; }
-  function freshWarranty(){ return { id:"", open:false, rejectedFile:"", file:null, submitting:false, error:"", done:null }; }
-  function customMinQty(){ var p = CONFIG.rates.packages; return p[p.length-1].qty + 1; }
-  function freshCalc(){ return { qty:10, isCustom:false, platforms:[], _queueFetched:false, _queueLoading:false, queuedHoursAhead:0 }; }
-
+  function escapeHtml(s){ return s==null?"":String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function fmtMoney(n){ return CONFIG.currency + " " + Math.round(n||0).toLocaleString("id-ID"); }
 
+  function freshOrderForm(){ return { clientName:"",clientPhone:"",platforms:[],qty:10,isCustom:false,_pendingId:null,_submitting:false,promoCode:"",promo:null,promoMsg:null,promoLoading:false }; }
+  function freshWarranty(){ return { id:"",open:false,rejectedFile:"",reason:"",file:null,submitting:false,error:"",done:null,elig:null }; }
+  function freshCalc(){ return { qty:10,isCustom:false,platforms:[],_fetched:false,_loading:false,queuedHoursAhead:0 }; }
+
+  function customMinQty(){ var p=CONFIG.rates.packages; return p[p.length-1].qty + 1; }
+
+  // =========================================================================
+  // PRICE & ETA SIMULATION
+  // =========================================================================
   function computePrice(qty){
-    var q = Math.max(Math.round(Number(qty)||0), 0);
+    var q = Math.max(Math.round(Number(qty)||0),0);
     var pkgs = CONFIG.rates.packages;
-    var maxPkgQty = pkgs[pkgs.length-1].qty;
-    if (q > maxPkgQty) {
+    var maxQ = pkgs[pkgs.length-1].qty;
+    if(q > maxQ){
       var total = q * CONFIG.rates.overflowPricePerVideo;
-      return { total: total, isCustom: true, items: [{ label: q + " video \u00d7 " + fmtMoney(CONFIG.rates.overflowPricePerVideo), value: total }] };
+      return { total:total, isCustom:true, items:[{label:q+" video × "+fmtMoney(CONFIG.rates.overflowPricePerVideo),value:total}] };
     }
-    var match = pkgs.filter(function(p){ return p.qty === q; })[0] || pkgs.filter(function(p){ return q <= p.qty; })[0] || pkgs[pkgs.length-1];
-    return { total: match.price, isCustom: false, items: [{ label: "Paket " + match.label + " (" + match.qty + " video)", value: match.price }] };
+    var m = pkgs.filter(function(p){return p.qty===q;})[0] || pkgs.filter(function(p){return q<=p.qty;})[0] || pkgs[pkgs.length-1];
+    return { total:m.price, isCustom:false, items:[{label:"Paket "+m.label+" ("+m.qty+" video)",value:m.price}] };
   }
 
   function workWindowHoursSim(){
     var p = CONFIG.production;
     return p.workWindowEndHour > p.workWindowStartHour ? (p.workWindowEndHour - p.workWindowStartHour) : ((24 - p.workWindowStartHour) + p.workWindowEndHour);
   }
-  function hoursPerVideoSim(){ return workWindowHoursSim() / Math.max(CONFIG.production.videosPerDay, 1); }
-  function simulateEtaHours(qty, queuedAheadHours){
-    var p = CONFIG.production, q = Math.max(Number(qty)||0, 1), ahead = Math.max(Number(queuedAheadHours)||0, 0);
-    return p.setupBufferHours + ahead + q * hoursPerVideoSim();
+  function hoursPerVideoSim(){ return workWindowHoursSim() / Math.max(CONFIG.production.videosPerDay,1); }
+  function simulateEtaHours(qty, ahead){
+    var p = CONFIG.production;
+    return p.setupBufferHours + Math.max(Number(ahead)||0,0) + Math.max(Number(qty)||0,1) * hoursPerVideoSim();
   }
-  function simulateTargetDate(baseDate, hoursNeeded){
-    var p = CONFIG.production, offsetMs = CONFIG.timezoneOffsetHours * 3600000;
-    var startHour = p.workWindowStartHour, endHour = p.workWindowEndHour;
-    var current = new Date(baseDate.getTime() + offsetMs);
-    var remainingMinutes = hoursNeeded * 60;
-    var guard = 0;
-    while(remainingMinutes > 1e-6 && guard < 100000){
+  function simulateTargetDate(base, hours){
+    var p = CONFIG.production, off = CONFIG.timezoneOffsetHours * 3600000;
+    var cur = new Date(base.getTime() + off), rem = hours * 60, guard = 0;
+    while(rem > 1e-6 && guard < 100000){
       guard++;
-      var curHour = current.getUTCHours(), curMinute = current.getUTCMinutes();
-      var inWork = endHour > startHour ? (curHour >= startHour && curHour < endHour) : (curHour >= startHour || curHour < endHour);
-      if(inWork){
-        var minutesUntilEnd = endHour > startHour ? (endHour - curHour) * 60 - curMinute : ((24 - curHour) + endHour) * 60 - curMinute;
-        var consume = Math.min(remainingMinutes, minutesUntilEnd);
-        current = new Date(current.getTime() + consume * 60000);
-        remainingMinutes -= consume;
+      var h = cur.getUTCHours(), m = cur.getUTCMinutes();
+      var inW = p.workWindowEndHour > p.workWindowStartHour ? (h >= p.workWindowStartHour && h < p.workWindowEndHour) : (h >= p.workWindowStartHour || h < p.workWindowEndHour);
+      if(inW){
+        var e = p.workWindowEndHour > p.workWindowStartHour ? (p.workWindowEndHour - h)*60 - m : ((24 - h) + p.workWindowEndHour)*60 - m;
+        var c = Math.min(rem, e);
+        cur = new Date(cur.getTime() + c*60000); rem -= c;
       } else {
-        var minutesUntilStart = curHour < startHour ? (startHour - curHour) * 60 - curMinute : ((24 - curHour) + startHour) * 60 - curMinute;
-        current = new Date(current.getTime() + minutesUntilStart * 60000);
+        var s = h < p.workWindowStartHour ? (p.workWindowStartHour - h)*60 - m : ((24 - h) + p.workWindowStartHour)*60 - m;
+        cur = new Date(cur.getTime() + s*60000);
       }
     }
-    return new Date(current.getTime() - offsetMs);
+    return new Date(cur.getTime() - off);
+  }
+  function formatTargetDate(d){
+    var ds = d.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    var ts = d.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hour12:false}).replace('.',':');
+    return ds + ' pukul ' + ts + ' WIB';
   }
 
-  function formatTargetDate(date){
-    var dateStr = date.toLocaleDateString('id-ID', { timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long', year:'numeric' });
-    var timeStr = date.toLocaleTimeString('id-ID', { timeZone:'Asia/Jakarta', hour:'2-digit', minute:'2-digit', hour12:false }).replace('.', ':');
-    return dateStr + ' pukul ' + timeStr + ' WIB';
+  function renderEtaSimulation(qty, ahead){
+    var h = simulateEtaHours(qty, ahead);
+    var t = simulateTargetDate(new Date(), h);
+    var str = formatTargetDate(t);
+    var note = (ahead && ahead > 0) ? ('Termasuk antrean ~'+Number(ahead).toLocaleString("id-ID",{maximumFractionDigits:1})+' jam dari pekerjaan lebih dulu.') : "";
+    return '<div class="eta-note"><div>🎬 Jika pembayaran dikonfirmasi sekarang, target sekitar <strong>'+escapeHtml(str)+'</strong>.</div>'+(note?'<span class="eta-sub">'+escapeHtml(note)+'</span>':'')+'<span class="eta-sub">Tanggal final dihitung saat admin mengonfirmasi pembayaran.</span></div>';
   }
-
-  function renderEtaSimulation(qty, queuedAheadHours){
-    var hours = simulateEtaHours(qty, queuedAheadHours);
-    var target = simulateTargetDate(new Date(), hours);
-    var targetStr = formatTargetDate(target);
-    var queueNote = (queuedAheadHours && queuedAheadHours > 0) ? ("Termasuk beban antrean sekitar " + Number(queuedAheadHours).toLocaleString("id-ID", {maximumFractionDigits:1}) + " jam dari pekerjaan yang lebih dahulu masuk.") : "";
-    return '<div class="eta-note">' +
-        '<div>\uD83C\uDFAC Simulasi: jika pembayaranmu dikonfirmasi admin sekarang juga, targetnya sekitar <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
-        (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
-        '<span class="eta-sub">Tanggal final akan dihitung ulang & dikunci otomatis saat admin benar-benar mengonfirmasi pembayaranmu.</span>' +
-      '</div>';
-  }
-
-  function renderEtaLocked(targetIso, queuedAhead, introText, extraClass, queueUnit){
-    var cls = 'eta-note' + (extraClass ? ' ' + extraClass : '');
-    if(!targetIso){
-      return '<div class="eta-note pending">\u23F3 Tanggal target selesai akan muncul otomatis di sini setelah admin mengonfirmasi.</div>';
+  function renderEtaLocked(iso, ahead, intro, cls, unit){
+    if(!iso) return '<div class="eta-note pending">⏳ Tanggal target muncul setelah admin mengonfirmasi.</div>';
+    var t = new Date(iso), str = formatTargetDate(t), note = "";
+    if(ahead && ahead > 0){
+      note = unit === "jam" ? "Beban sebelum pesanan ini: "+Number(ahead).toLocaleString("id-ID",{maximumFractionDigits:1})+" jam."
+                           : "Termasuk antrean "+ahead+" video dari pesanan lain.";
     }
-    var target = new Date(targetIso);
-    var targetStr = formatTargetDate(target);
-    var queueNote = "";
-    if(queuedAhead && queuedAhead > 0){
-      queueNote = queueUnit === "jam"
-        ? ("Beban pekerjaan sebelum pesanan ini: " + Number(queuedAhead).toLocaleString("id-ID", {maximumFractionDigits:1}) + " jam.")
-        : ("Termasuk antrian " + queuedAhead + " video dari pesanan lain yang lebih dulu masuk.");
-    }
-    return '<div class="' + cls + '">' +
-        '<div>\uD83C\uDFAC ' + introText + ' Ditargetkan selesai pada <strong>' + escapeHtml(targetStr) + '</strong>.</div>' +
-        (queueNote ? '<span class="eta-sub">' + escapeHtml(queueNote) + '</span>' : '') +
-        '<div class="countdown-badge">\u23F3 <span class="countdown" data-target="' + target.toISOString() + '">menghitung...</span></div>' +
-      '</div>';
+    return '<div class="eta-note '+(cls||'')+'"><div>🎬 '+intro+' Ditargetkan <strong>'+escapeHtml(str)+'</strong>.</div>'+(note?'<span class="eta-sub">'+escapeHtml(note)+'</span>':'')+'<div class="countdown-badge">⏳ <span class="countdown" data-target="'+t.toISOString()+'">menghitung...</span></div></div>';
   }
-
   function tickCountdowns(){
     document.querySelectorAll('.countdown[data-target]').forEach(function(el){
-      var target = new Date(el.getAttribute('data-target')).getTime();
-      var diff = target - Date.now();
-      if(diff <= 0){ el.textContent = "Seharusnya sudah selesai — hubungi admin untuk update terbaru."; return; }
-      var d = Math.floor(diff/86400000); diff -= d*86400000;
-      var h = Math.floor(diff/3600000); diff -= h*3600000;
-      var m = Math.floor(diff/60000); diff -= m*60000;
-      var s = Math.floor(diff/1000);
-      var pad = function(n){ return (n<10?"0":"")+n; };
-      el.textContent = (d>0 ? d + " hari " : "") + pad(h) + " jam " + pad(m) + " menit " + pad(s) + " detik lagi";
+      var t = new Date(el.getAttribute('data-target')).getTime();
+      var diff = t - Date.now();
+      if(diff <= 0){ el.textContent = "Seharusnya sudah selesai — hubungi admin."; return; }
+      var d=Math.floor(diff/86400000); diff-=d*86400000;
+      var h=Math.floor(diff/3600000); diff-=h*3600000;
+      var m=Math.floor(diff/60000); diff-=m*60000;
+      var s=Math.floor(diff/1000);
+      var p=function(n){return (n<10?"0":"")+n;};
+      el.textContent = (d>0?d+" hari ":"")+p(h)+" jam "+p(m)+" menit "+p(s)+" detik lagi";
     });
   }
-
-  function restartCountdownTicker(){
-    if(window.__etaTicker){ clearInterval(window.__etaTicker); window.__etaTicker = null; }
-    if(document.querySelector('.countdown[data-target]')){
-      tickCountdowns();
-      window.__etaTicker = setInterval(tickCountdowns, 1000);
-    }
+  function restartTicker(){
+    if(window.__etaTicker){ clearInterval(window.__etaTicker); window.__etaTicker=null; }
+    if(document.querySelector('.countdown[data-target]')){ tickCountdowns(); window.__etaTicker = setInterval(tickCountdowns,1000); }
   }
 
-  function escapeHtml(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
-
+  // =========================================================================
+  // FETCH HELPERS
+  // =========================================================================
   function fetchJson(url, options, policy){
-    options = options || {};
-    policy = policy || {};
-    var maxAttempts = Math.max(1, Number(policy.maxAttempts) || 1);
-    var timeoutMs = Math.max(1000, Number(policy.timeoutMs) || 10000);
-    var canRetry = policy.retryTransient === true || maxAttempts > 1;
-
-    function requestOnce(){
-      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-      var requestOptions = Object.assign({}, options);
-      if(controller) requestOptions.signal = controller.signal;
+    options = options || {}; policy = policy || {};
+    var maxA = Math.max(1, Number(policy.maxAttempts)||1);
+    var timeoutMs = Math.max(1000, Number(policy.timeoutMs)||10000);
+    function once(){
+      var ctrl = typeof AbortController!=="undefined" ? new AbortController() : null;
+      var opt = Object.assign({}, options);
+      if(ctrl) opt.signal = ctrl.signal;
       var timer;
-      var request = fetch(url, requestOptions).then(function(res){
+      var req = fetch(url, opt).then(function(res){
         return res.text().then(function(body){
-          if(!res.ok){
-            var httpError = new Error("http_" + res.status);
-            httpError.status = res.status;
-            throw httpError;
-          }
+          if(!res.ok){ var e = new Error("http_"+res.status); e.status = res.status; throw e; }
           try { return JSON.parse(body); }
-          catch(parseError){ var responseError = new Error("bad_response"); responseError.retryable = true; throw responseError; }
+          catch(pe){ var e = new Error("bad_response"); e.retryable = true; throw e; }
         });
       });
-      var timeout = new Promise(function(resolve, reject){
-        timer = setTimeout(function(){
-          if(controller) controller.abort();
-          var timeoutError = new Error("timeout");
-          timeoutError.isTimeout = true;
-          reject(timeoutError);
-        }, timeoutMs);
+      var t = new Promise(function(_,rej){
+        timer = setTimeout(function(){ if(ctrl) ctrl.abort(); var e = new Error("timeout"); e.isTimeout = true; rej(e); }, timeoutMs);
       });
-      return Promise.race([request, timeout]).then(function(data){
-        clearTimeout(timer);
-        return data;
-      }, function(error){
-        clearTimeout(timer);
-        throw error;
-      });
+      return Promise.race([req,t]).then(function(d){ clearTimeout(timer); return d; }, function(e){ clearTimeout(timer); throw e; });
     }
-
-    function isRetryable(error){
-      return !error.status || error.status === 429 || error.status >= 500 || error.retryable || error.isTimeout;
-    }
+    function retryable(e){ return !e.status || e.status===429 || e.status>=500 || e.retryable || e.isTimeout; }
     function run(attempt){
-      return requestOnce().catch(function(error){
-        if(!canRetry || attempt >= maxAttempts || !isRetryable(error)) throw error;
-        var delay = Math.min(1800, 500 * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 250);
-        return new Promise(function(resolve){ setTimeout(resolve, delay); }).then(function(){ return run(attempt + 1); });
+      return once().catch(function(e){
+        if(attempt >= maxA || !retryable(e)) throw e;
+        var d = Math.min(1800, 500*Math.pow(2,attempt-1)) + Math.floor(Math.random()*250);
+        return new Promise(function(r){ setTimeout(r,d); }).then(function(){ return run(attempt+1); });
       });
     }
     return run(1);
   }
-
-  function apiPost(payload){
-    return fetchJson(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) }, { timeoutMs:30000 });
+  function apiPost(p){ return fetchJson(CONFIG.webAppUrl, {method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(p)}, {timeoutMs:30000}); }
+  function apiGet(q){ q._t = Date.now(); var s = Object.keys(q).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(q[k]);}).join("&"); return fetchJson(CONFIG.webAppUrl+"?"+s, {}, {maxAttempts:2,timeoutMs:15000}); }
+  function readFileB64(f){
+    return new Promise(function(res,rej){
+      var r = new FileReader();
+      r.onload = function(){ var s = r.result||""; var c = s.indexOf(","); res(c>-1?s.slice(c+1):s); };
+      r.onerror = function(){ rej(new Error("read_failed")); };
+      r.readAsDataURL(f);
+    });
   }
-  function apiGet(params){
-    params._t = Date.now();
-    var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }).join("&");
-    return fetchJson(CONFIG.webAppUrl + "?" + qs, {}, { maxAttempts:2, timeoutMs:15000 });
-  }
-
-  function promoFieldHtml(f){
-    var msg = f.promoMsg ? '<div class="promo-msg '+(f.promo?"ok":"err")+'">'+escapeHtml(f.promoMsg)+'</div>' : "";
-    return '<div class="field"><label>Kode Promo <span style="font-weight:400; color:var(--ink-faint);">(opsional)</span></label>' +
-      '<div class="promo-row"><input type="text" id="f-promo" value="'+escapeHtml(f.promoCode)+'" placeholder="Masukkan kode promo" autocomplete="off" autocapitalize="characters">' +
-      '<button class="btn btn-ghost btn-small" data-action="apply-promo" '+(f.promoLoading?"disabled":"")+'>'+(f.promoLoading?"Mengecek...":"Terapkan")+'</button></div>' + msg + '</div>';
-  }
-  function discountRowHtml(price){
-    if(!price || !price.discount) return "";
-    return '<div class="estimate-row discount"><span>Promo'+(price.promoCode?" "+escapeHtml(price.promoCode):"")+'</span><span>- '+fmtMoney(price.discount)+'</span></div>';
-  }
-  function repeatNoteHtml(project){
-    if(!project || !project.isRepeat) return "";
-    return '<div class="repeat-note">\uD83D\uDC4B <strong>Selamat datang kembali!</strong> Hasil pesanan ini akan masuk ke folder Google Drive yang sama dengan pesanan Anda sebelumnya.</div>';
-  }
-  function warrantyLinkHtml(p){
-    if(!p.paid || p.status === "Dibatalkan" || (p.status !== "Order Dikerjakan" && p.status !== "Selesai")) return "";
-    return '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="toggle-claim">'+(state.warranty.open?"Tutup formulir klaim":"Ajukan klaim garansi")+'</button></div>';
-  }
-
-  // Kartu status klaim garansi untuk kode order ini.
-  function claimStatusBadge(status){
-    var key = String(status||"").toLowerCase();
-    var label = status || "Menunggu";
-    return '<span class="claim-badge '+key+'">'+escapeHtml(label)+'</span>';
-  }
-  function renderClaimCards(claims){
-    if(!claims || !claims.length) return "";
-    return claims.map(function(claim){
-      var body = "";
-      if(claim.status === "Menunggu"){
-        body = '<div class="verif-note">Klaim garansi untuk file ini sedang ditinjau. Jadwal pengerjaan akan muncul setelah mulai diproses.</div>';
-      } else if(claim.status === "Dikerjakan"){
-        body = renderEtaLocked(claim.estimasiSelesai, 0, "Klaim untuk file "+escapeHtml(claim.fileName)+" sedang dikerjakan tim kami.", "claim");
-      } else if(claim.status === "Selesai"){
-        body = '<div class="verif-note" style="background:var(--teal-bg); border-color:var(--teal-border); color:#0B6B62;">Klaim garansi untuk file <strong>'+escapeHtml(claim.fileName)+'</strong> sudah selesai. Silakan cek folder hasil Anda.</div>';
-      } else if(claim.status === "Ditolak"){
-        body = '<div class="cancelled-banner">Klaim garansi untuk file '+escapeHtml(claim.fileName)+' ditolak. Hubungi admin untuk info lebih lanjut.</div>';
-      }
-      return '<div class="card claim-card"><div class="box-title claim-title">Klaim Garansi: '+escapeHtml(claim.fileName)+' '+claimStatusBadge(claim.status)+'</div>' + body + '</div>';
-    }).join("");
-  }
-
-  function renderWarrantyForm(){
-    var w = state.warranty;
-    var p = state.statusResult;
-    if(!w.open || !p || !p.paid || p.status === "Dibatalkan" ||
-      (p.status !== "Order Dikerjakan" && p.status !== "Selesai")) return "";
-    if(w.done){
-      return '<div class="card"><div class="box-title">Klaim berhasil dikirim</div>' +
-        '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(w.done.fileName)+'</strong> sudah tercatat dengan status <strong>'+escapeHtml(w.done.status)+'</strong>. Anda bisa memantau perkembangannya di halaman ini.</div>' +
-        '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="claim-another">Ajukan klaim file lain</button><button class="btn btn-ghost btn-small" data-action="close-claim">Tutup</button></div></div>';
-    }
-    var busy = w.submitting;
-    return (w.error ? '<div class="msg msg-error">'+escapeHtml(w.error)+'</div>' : "") +
-      '<div class="card" id="claim-form-card"><div class="box-title">Ajukan klaim garansi</div><p class="panel-sub">Isi nama file yang ditolak dan unggah screenshot penolakannya. Kode pesanan '+escapeHtml(w.id)+' sudah terhubung.</p>' +
-        '<div class="field"><label>Nama File yang Ditolak</label><input type="text" id="w-file-name" value="'+escapeHtml(w.rejectedFile)+'" placeholder="anim_01.mp4" autocomplete="off"></div>' +
-        '<div class="field"><label>Screenshot Penolakan</label><input type="file" id="warranty-file" accept="image/*" '+(busy?"disabled":"")+'>' +
-          (w.file ? '<div class="file-picked">Dipilih: '+escapeHtml(w.file.name)+' ('+Math.round(w.file.size/1024)+' KB)</div>' : "") +
-          '<div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
-        '<button class="btn btn-primary" data-action="submit-warranty" '+(busy?"disabled":"")+'>'+(busy?"Mengirim klaim...":"Kirim Klaim")+'</button>' +
-        '<button class="btn btn-ghost btn-small" data-action="close-claim" style="margin-left:8px;" '+(busy?"disabled":"")+'>Batal</button>' +
-      '</div>';
-  }
-
-  function submitWarranty(){
-    var w = state.warranty;
-    var input = document.getElementById("warranty-file");
-    var file = (input && input.files && input.files[0]) || w.file;
-    w.id = (w.id||"").trim().toUpperCase(); w.rejectedFile = (w.rejectedFile||"").trim();
-    if(!w.id || !state.statusResult || String(state.statusResult.id).toUpperCase() !== w.id){ w.error = "Lacak pesanan terlebih dahulu sebelum mengajukan klaim."; render(); return; }
-    if(!w.rejectedFile){ w.error = "Nama file yang ditolak wajib diisi."; render(); return; }
-    if(!file){ w.error = "Mohon unggah screenshot penolakan dari Adobe Stock / Shutterstock."; render(); return; }
-    if(file.size > CONFIG.maxProofSizeBytes){ w.file = file; w.error = "Ukuran screenshot terlalu besar (maksimal 4MB)."; render(); return; }
-    w.file = file; w.error = ""; w.submitting = true; render();
-    readFileAsBase64(file).then(function(base64){
-      return apiPost({ action:"warranty_claim", id:w.id, rejectedFile:w.rejectedFile, proofFileName:file.name, mimeType:file.type || "image/jpeg", fileData:base64 });
-    }).then(function(data){
-      w.submitting = false;
-      if(data && data.success){
-        w.done = data.claim || { id:w.id, fileName:w.rejectedFile, status:"Menunggu", submittedAt:new Date().toISOString() };
-        w.file = null;
-        if(!state.statusResult.claims) state.statusResult.claims = [];
-        state.statusResult.claims.unshift({ fileName:w.done.fileName, jumlahFile:1, status:w.done.status || "Menunggu", estimasiSelesai:null, submittedAt:w.done.submittedAt || new Date().toISOString() });
-      }
-      else { w.error = (data && (data.message || data.error)) || "Klaim gagal dikirim. Silakan coba lagi."; }
-      render(); window.scrollTo(0,0);
-    }).catch(function(){
-      w.submitting = false; w.error = "Sambungan terputus sebelum server mengonfirmasi klaim. Lacak status pesanan sebelum mencoba lagi agar klaim tidak terkirim dua kali."; render();
+  function uploadProof(id, file){
+    return readFileB64(file).then(function(b64){
+      return fetch(CONFIG.webAppUrl, {method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"upload_proof",id:id,fileName:file.name,mimeType:file.type||"image/jpeg",fileData:b64})})
+        .then(function(r){ return r.json(); });
     });
   }
 
-  function paymentBoxHtml(total, discount, promoCode){
-    return '<div class="pay-box"><div class="pay-title">Instruksi Pembayaran</div>' +
-      '<div class="bank-row"><span>Bank</span><span class="val">'+escapeHtml(CONFIG.payment.bankName)+'</span></div>' +
-      '<div class="bank-row"><span>No. Rekening</span><span class="val">'+escapeHtml(CONFIG.payment.accountNumber)+'</span></div>' +
-      '<div class="bank-row"><span>Atas Nama</span><span class="val">'+escapeHtml(CONFIG.payment.accountName)+'</span></div>' +
-      (discount ? '<div class="bank-row"><span>Potongan promo'+(promoCode?' ('+escapeHtml(promoCode)+')':'')+'</span><span class="val">- '+fmtMoney(discount)+'</span></div>' : '') +
-      '<div class="bank-row"><span>Total Tagihan</span><span class="val">'+fmtMoney(total)+'</span></div>' +
-      '</div>';
-  }
-
-  function platformChipsHtml(selected, action){
-    return '<div class="chip-group">' + PLATFORMS_KNOWN.map(function(p){
-      return '<span class="chip '+(selected.indexOf(p)>-1?"selected":"")+'" data-action="'+action+'" data-val="'+escapeHtml(p)+'">'+escapeHtml(p)+'</span>';
-    }).join("") + '</div>';
-  }
-
-  function packageChipsHtml(currentQty, isCustom, targetState){
-    var action = targetState === "calc" ? "pick-package-calc" : "pick-package";
-    var chips = CONFIG.rates.packages.map(function(p){
-      var sel = (!isCustom && currentQty === p.qty) ? "selected" : "";
-      return '<span class="chip '+sel+'" data-action="'+action+'" data-qty="'+p.qty+'">'+escapeHtml(p.label)+' ('+p.qty+' Video) — '+fmtMoney(p.price)+'</span>';
-    }).join("");
-    chips += '<span class="chip '+(isCustom?"selected":"")+'" data-action="'+action+'" data-qty="custom">Pesanan Besar (&gt;'+(customMinQty()-1)+' Video)</span>';
-    return '<div class="chip-group">' + chips + '</div>';
-  }
-
-  function customQtyFieldHtml(qty, inputId){
-    return '<div class="field"><label>Jumlah video (minimal '+customMinQty()+')</label>' +
-      '<input type="number" id="'+inputId+'" min="'+customMinQty()+'" value="'+qty+'">' +
-      '<div class="field-note">Rp'+CONFIG.rates.overflowPricePerVideo.toLocaleString("id-ID")+'/video, dikerjakan bertahap sesuai kapasitas harian.</div></div>';
-  }
-
-  function readFileAsBase64(file){
-    return new Promise(function(resolve, reject){
-      var reader = new FileReader();
-      reader.onload = function(){
-        var result = reader.result || "";
-        var comma = result.indexOf(",");
-        resolve(comma > -1 ? result.slice(comma + 1) : result);
-      };
-      reader.onerror = function(){ reject(new Error("read_failed")); };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function uploadProofFile(orderId, file){
-    return readFileAsBase64(file).then(function(base64){
-      return fetch(CONFIG.webAppUrl, {
-        method: "POST", headers: {"Content-Type":"text/plain;charset=utf-8"},
-        body: JSON.stringify({ action: "upload_proof", id: orderId, fileName: file.name, mimeType: file.type || "image/jpeg", fileData: base64 })
-      }).then(function(res){ return res.json(); });
-    });
-  }
-
-  function syncRemoteConfig(){
-    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
-    fetchJson(CONFIG.webAppUrl + "?action=config", {}, { maxAttempts:1, timeoutMs:6000 }).then(function(data){
-      if(data && data.production) CONFIG.production = data.production;
-      if(data && data.rates) CONFIG.rates = data.rates;
-      if(data && data.allowedPlatforms && data.allowedPlatforms.length) PLATFORMS_KNOWN = data.allowedPlatforms;
-      render();
-    }).catch(function(){ /* pakai nilai default kalau gagal, tidak masalah */ });
-  }
-
-  function fetchQueueForCalc(){
-    if(state.calc._queueFetched || state.calc._queueLoading) return;
-    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
-    state.calc._queueLoading = true;
-    fetchJson(CONFIG.webAppUrl + "?action=queue", {}, { maxAttempts:2, timeoutMs:15000 }).then(function(data){
-      state.calc._queueLoading = false; state.calc._queueFetched = true;
-      state.calc.queuedHoursAhead = (data && typeof data.queuedHoursAhead === "number") ? data.queuedHoursAhead :
-        ((data && typeof data.queuedVideosAhead === "number") ? data.queuedVideosAhead * hoursPerVideoSim() : 0);
-      render();
-    }).catch(function(){ state.calc._queueLoading = false; state.calc._queueFetched = true; render(); });
-  }
-
+  // =========================================================================
+  // RENDER
+  // =========================================================================
   function render(){
     var c = document.getElementById("content");
-    var html = '<header class="top"><div class="top-row"><div><p class="brand-name">'+escapeHtml(CONFIG.businessName)+'</p><p class="tagline">Pemesanan &amp; pelacakan status proyek</p></div><div class="frame-mark"><span class="dot"></span>Sistem Online</div></div>' +
-      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button></nav></header>';
-    html += '<main>';
-    if(state.tab === "order") html += renderOrderTab();
-    else if(state.tab === "status") html += renderStatusTab();
-    else if(state.tab === "calc") html += renderCalcTab();
-    html += '</main><footer class="foot">Sistem terenkripsi aman &mdash; Data Anda tersimpan secara privat.</footer>';
-    c.innerHTML = html; attachHandlers(); restartCountdownTicker();
+    var html = '<header class="top"><div class="top-row"><div><p class="brand-name">'+escapeHtml(CONFIG.businessName)+'</p><p class="tagline">Pemesanan &amp; pelacakan proyek</p></div><div class="frame-mark"><span class="dot"></span>Sistem Online</div></div></header>' +
+      '<nav class="tabs"><button data-tab="order" class="'+(state.tab==="order"?"active":"")+'">Buat Pesanan</button><button data-tab="status" class="'+(state.tab==="status"?"active":"")+'">Lacak Status</button><button data-tab="calc" class="'+(state.tab==="calc"?"active":"")+'">Estimasi Harga</button></nav>' +
+      '<main>' + (state.tab==="order"?renderOrderTab():state.tab==="status"?renderStatusTab():renderCalcTab()) + '</main>' +
+      '<footer class="foot">Sistem aman terenkripsi &mdash; Data tersimpan privat.</footer>';
+    c.innerHTML = html;
+    attachHandlers();
+    restartTicker();
   }
 
+  function platformChips(sel, action){
+    return '<div class="chip-group">'+PLATFORMS.map(function(p){
+      return '<span class="chip '+(sel.indexOf(p)>-1?"selected":"")+'" data-action="'+action+'" data-val="'+escapeHtml(p)+'">'+escapeHtml(p)+'</span>';
+    }).join("")+'</div>';
+  }
+  function packageChips(qty, isCustom, tgt){
+    var act = tgt==="calc" ? "pick-pkg-calc" : "pick-pkg";
+    var chips = CONFIG.rates.packages.map(function(p){
+      var s = (!isCustom && qty===p.qty) ? "selected" : "";
+      return '<span class="chip '+s+'" data-action="'+act+'" data-qty="'+p.qty+'">'+escapeHtml(p.label)+' ('+p.qty+' video) — '+fmtMoney(p.price)+'</span>';
+    }).join("");
+    chips += '<span class="chip '+(isCustom?"selected":"")+'" data-action="'+act+'" data-qty="custom">Pesanan Besar (&gt;'+(customMinQty()-1)+' video)</span>';
+    return '<div class="chip-group">'+chips+'</div>';
+  }
+  function customQty(qty, id){
+    return '<div class="field"><label>Jumlah video (minimal '+customMinQty()+')</label><input type="number" id="'+id+'" min="'+customMinQty()+'" value="'+qty+'"><div class="field-note">Rp'+CONFIG.rates.overflowPricePerVideo.toLocaleString("id-ID")+'/video, dikerjakan bertahap.</div></div>';
+  }
+  function paymentBox(total, disc, code){
+    return '<div class="pay-box"><div class="pay-title">Instruksi Pembayaran</div>'+
+      '<div class="bank-row"><span>Bank</span><span class="val">'+escapeHtml(CONFIG.payment.bankName)+'</span></div>'+
+      '<div class="bank-row"><span>No. Rekening</span><span class="val">'+escapeHtml(CONFIG.payment.accountNumber)+'</span></div>'+
+      '<div class="bank-row"><span>Atas Nama</span><span class="val">'+escapeHtml(CONFIG.payment.accountName)+'</span></div>'+
+      (disc ? '<div class="bank-row"><span>Diskon'+(code?' ('+escapeHtml(code)+')':'')+'</span><span class="val">- '+fmtMoney(disc)+'</span></div>' : '')+
+      '<div class="bank-row"><span>Total</span><span class="val">'+fmtMoney(total)+'</span></div></div>';
+  }
+
+  // ---------- ORDER TAB ----------
   function renderOrderTab(){
     var f = state.orderForm;
     if(state.orderMsg && state.orderMsg.newId){
       var id = state.orderMsg.newId, project = state.orderMsg.project;
       if(state.orderMsg.phase === "proof_sent"){
-        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda untuk melacak progres verifikasi.</p><div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran Anda sedang diverifikasi oleh admin.</div>' +
-          '<div class="eta-note pending">\u23F3 Setelah admin mengonfirmasi pembayaranmu, jadwal pengerjaan akan langsung terkunci dan tanggal target selesai muncul otomatis di halaman Lacak Status.</div>' +
-          '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div><div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lainnya</button></div>';
+        return '<h2 class="panel-title">Bukti Pembayaran Terkirim</h2><p class="panel-sub">Simpan kode pesanan Anda.</p>'+
+          '<div class="card"><div class="id-display">'+id+'</div><div class="verif-note">Terima kasih! Bukti pembayaran sedang diverifikasi admin.</div>'+
+          '<div class="eta-note pending">⏳ Setelah admin konfirmasi, jadwal pengerjaan langsung terkunci & tanggal target muncul.</div>'+
+          '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;"><button class="btn btn-ghost" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-primary btn-small" data-action="goto-status" data-id="'+id+'">Lacak Sekarang</button></div></div>'+
+          '<div style="text-align:center;"><button class="btn btn-ghost" data-action="order-new">Buat pesanan lain</button></div>';
       }
-      var uploading = !!state.orderMsg.uploading;
-      return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan lakukan pembayaran, lalu unggah foto bukti transfer di bawah ini.</p>' +
-        '<div class="card"><div class="id-display">'+id+'</div>' +
-        repeatNoteHtml(project) + paymentBoxHtml(project.price.total, project.discount, project.promoCode) +
-        '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="proof-file-input" accept="image/*" '+(uploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
-        (state.orderMsg.proofError ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.proofError)+'</div>' : "") +
-        '<button class="btn btn-primary" data-action="submit-proof" '+(uploading?"disabled":"")+'>'+(uploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' +
-        '<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-ghost btn-small" data-action="goto-status" data-id="'+id+'">Lacak Nanti</button></div>' +
-        '</div>';
+      var up = !!state.orderMsg.uploading;
+      return '<h2 class="panel-title">Pesanan Berhasil Dibuat</h2><p class="panel-sub">Silakan bayar, lalu unggah bukti transfer.</p>'+
+        '<div class="card"><div class="id-display">'+id+'</div>'+
+        (project.isRepeat ? '<div class="repeat-note">👋 <strong>Selamat datang kembali!</strong> Hasil masuk ke folder Drive yang sama dengan order sebelumnya.</div>' : '')+
+        paymentBox(project.price.total, project.discount, project.promoCode)+
+        '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="proof-file-input" accept="image/*" '+(up?"disabled":"")+'><div class="field-note">JPG/PNG, max 4MB</div></div>'+
+        (state.orderMsg.proofError ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.proofError)+'</div>' : '')+
+        '<button class="btn btn-primary" data-action="submit-proof" '+(up?"disabled":"")+'>'+(up?"Mengunggah...":"Saya Sudah Bayar")+'</button>'+
+        '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="copy-id" data-id="'+id+'">Salin Kode</button><button class="btn btn-ghost btn-small" data-action="goto-status" data-id="'+id+'">Lacak Nanti</button></div></div>';
     }
-    var priceEst = computePrice(f.qty);
-    var promoDiscount = f.promo ? Math.min(f.promo.discount, priceEst.total) : 0;
-    var finalTotal = priceEst.total - promoDiscount;
-    var estRows = priceEst.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
-    var submitting = !!f._submitting;
-    return '<h2 class="panel-title">Formulir Pemesanan</h2><p class="panel-sub">Lengkapi detail kebutuhan aset video Anda.</p>' + (state.orderMsg && state.orderMsg.error ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.error)+'</div>' : "") +
-      '<div class="card">' +
-        '<div class="grid2"><div class="field"><label>Nama Lengkap</label><input type="text" id="f-clientName" value="'+escapeHtml(f.clientName)+'" placeholder="Nama Anda"></div><div class="field"><label>Nomor WhatsApp</label><input type="tel" id="f-clientPhone" value="'+escapeHtml(f.clientPhone)+'" placeholder="08xx-xxxx-xxxx"></div></div>' +
-        '<div class="field"><label>Platform Microstock</label>' + platformChipsHtml(f.platforms, "toggle-platform") + '</div>' +
-        '<div class="field"><label>Pilih Paket</label>' + packageChipsHtml(f.qty, f.isCustom, "order") + '</div>' +
-        (f.isCustom ? customQtyFieldHtml(f.qty, "f-qty-custom") : "") +
-        promoFieldHtml(f) +
-      '</div>' +
-      '<div class="card estimate-box"><div class="box-title">Estimasi tagihan</div>' + estRows + (promoDiscount ? '<div class="estimate-row discount"><span>Promo '+escapeHtml(f.promo.code)+'</span><span>- '+fmtMoney(promoDiscount)+'</span></div>' : '') + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(finalTotal)+'</span></div></div>' +
-      '<button class="btn btn-primary" data-action="submit-order" '+(submitting?"disabled":"")+'>'+(submitting?"Mengirim...":"Kirim Pesanan")+'</button>';
+    var p = computePrice(f.qty);
+    var disc = f.promo ? Math.min(f.promo.discount, p.total) : 0;
+    var final = p.total - disc;
+    var rows = p.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600;color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
+    var sub = !!f._submitting;
+    var promoMsg = f.promoMsg ? '<div class="promo-msg '+(f.promo?"ok":"err")+'">'+escapeHtml(f.promoMsg)+'</div>' : "";
+    return '<h2 class="panel-title">Formulir Pemesanan</h2><p class="panel-sub">Lengkapi detail kebutuhan aset video Anda.</p>'+
+      (state.orderMsg && state.orderMsg.error ? '<div class="msg msg-error">'+escapeHtml(state.orderMsg.error)+'</div>' : '')+
+      '<div class="card"><div class="grid2"><div class="field"><label>Nama Lengkap</label><input type="text" id="f-clientName" value="'+escapeHtml(f.clientName)+'" placeholder="Nama Anda"></div><div class="field"><label>Nomor WhatsApp</label><input type="tel" id="f-clientPhone" value="'+escapeHtml(f.clientPhone)+'" placeholder="08xx-xxxx-xxxx"></div></div>'+
+      '<div class="field"><label>Platform Microstock</label>'+platformChips(f.platforms,"toggle-platform")+'</div>'+
+      '<div class="field"><label>Pilih Paket</label>'+packageChips(f.qty,f.isCustom,"order")+'</div>'+
+      (f.isCustom ? customQty(f.qty,"f-qty-custom") : "")+
+      '<div class="field"><label>Kode Promo <span style="font-weight:400;color:var(--ink-faint);">(opsional)</span></label>'+
+      '<div class="promo-row"><input type="text" id="f-promo" value="'+escapeHtml(f.promoCode)+'" placeholder="Masukkan kode" autocomplete="off" autocapitalize="characters"><button class="btn btn-ghost btn-small" data-action="apply-promo" '+(f.promoLoading?"disabled":"")+'>'+(f.promoLoading?"Cek...":"Terapkan")+'</button></div>'+promoMsg+'</div></div>'+
+      '<div class="card estimate-box"><div class="box-title">Estimasi tagihan</div>'+rows+
+      (disc?'<div class="estimate-row discount"><span>Promo '+escapeHtml(f.promo.code)+'</span><span>- '+fmtMoney(disc)+'</span></div>':'')+
+      '<div class="estimate-row total"><span>Total</span><span>'+fmtMoney(final)+'</span></div></div>'+
+      '<button class="btn btn-primary" data-action="submit-order" '+(sub?"disabled":"")+'>'+(sub?"Mengirim...":"Kirim Pesanan")+'</button>';
   }
 
+  // ---------- CLAIM CARDS ----------
+  function claimBadge(s){
+    var k = String(s||"").toLowerCase();
+    return '<span class="claim-badge '+k+'">'+escapeHtml(s||"Menunggu")+'</span>';
+  }
+  function renderClaimCards(list){
+    if(!list || !list.length) return "";
+    return list.map(function(c){
+      var body = "";
+      if(c.status === "Menunggu") body = '<div class="verif-note">Klaim sedang ditinjau admin.</div>';
+      else if(c.status === "Dikerjakan") body = renderEtaLocked(c.estimasiSelesai, 0, "Klaim file "+escapeHtml(c.fileName)+" sedang dikerjakan.", "claim");
+      else if(c.status === "Selesai") body = '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(c.fileName)+'</strong> selesai. Silakan cek folder hasil.</div>';
+      else if(c.status === "Ditolak") body = '<div class="cancelled-banner">Klaim untuk file '+escapeHtml(c.fileName)+' ditolak.'+(c.alasan?' Alasan: '+escapeHtml(c.alasan)+'.':'')+'</div>';
+      return '<div class="card claim-card"><div class="box-title claim-title">Klaim: '+escapeHtml(c.fileName)+' '+claimBadge(c.status)+'</div>'+body+'</div>';
+    }).join("");
+  }
+
+  // ---------- WARRANTY FORM ----------
+  function renderWarrantyForm(){
+    var w = state.warranty;
+    var p = state.statusResult;
+    if(!w.open || !p) return "";
+    if(w.done){
+      return '<div class="card"><div class="box-title">Klaim berhasil dikirim</div>'+
+        '<div class="verif-note">Klaim untuk file <strong>'+escapeHtml(w.done.fileName)+'</strong> tercatat dengan status <strong>'+escapeHtml(w.done.status)+'</strong>.</div>'+
+        (typeof w.done.remaining === "number" ? '<div class="eta-note pending" style="margin-top:14px;">Sisa kuota klaim order ini: <strong>'+w.done.remaining+' file</strong>.</div>' : '')+
+        '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;"><button class="btn btn-ghost btn-small" data-action="claim-another">Klaim file lain</button><button class="btn btn-ghost btn-small" data-action="close-claim">Tutup</button></div></div>';
+    }
+    var elig = w.elig || state.warrantyElig;
+    var rulesHtml = "";
+    if(elig){
+      rulesHtml = '<div class="rules-box"><div class="rules-title">📋 Syarat Klaim Garansi</div><ul>'+
+        '<li>Order harus <strong>lunas</strong> & berstatus <strong>Selesai</strong></li>'+
+        '<li>Klaim dibatasi <strong>'+CONFIG.warranty.windowDays+' hari</strong> setelah order Selesai</li>'+
+        '<li>Maksimal <strong>'+CONFIG.warranty.maxPercentOfOrder+'%</strong> dari qty order</li>'+
+        '<li><strong>1 file = 1x klaim</strong>, wajib bukti penolakan dari platform</li>'+
+        '<li>Klaim yang ditolak admin = file terkunci permanen</li></ul>'+
+        (elig.remaining !== undefined ? '<div class="quota-line"><span>Kuota tersisa</span><span>'+elig.remaining+' file</span></div>' : '')+
+        '</div>';
+    }
+    var busy = w.submitting;
+    return (w.error ? '<div class="msg msg-error">'+escapeHtml(w.error)+'</div>' : '')+
+      '<div class="card" id="claim-form-card"><div class="box-title">Ajukan Klaim Garansi</div>'+
+      '<p class="panel-sub">Isi nama file yang ditolak & unggah screenshot penolakan dari platform.</p>'+
+      rulesHtml+
+      '<div class="field"><label>Nama File yang Ditolak</label><input type="text" id="w-file-name" value="'+escapeHtml(w.rejectedFile)+'" placeholder="anim_01.mp4" autocomplete="off"></div>'+
+      '<div class="field"><label>Alasan Penolakan (dari platform)</label><input type="text" id="w-reason" value="'+escapeHtml(w.reason)+'" placeholder="Misal: Artifacts detected" autocomplete="off"><div class="field-note">Copy alasan penolakan dari Adobe Stock/Shutterstock.</div></div>'+
+      '<div class="field"><label>Screenshot Bukti Penolakan</label><input type="file" id="warranty-file" accept="image/*" '+(busy?"disabled":"")+'>'+
+      (w.file ? '<div class="file-picked">Dipilih: '+escapeHtml(w.file.name)+' ('+Math.round(w.file.size/1024)+' KB)</div>' : '')+
+      '<div class="field-note">JPG/PNG, max 4MB</div></div>'+
+      '<button class="btn btn-primary" data-action="submit-warranty" '+(busy?"disabled":"")+'>'+(busy?"Mengirim...":"Kirim Klaim")+'</button>'+
+      '<button class="btn btn-ghost btn-small" data-action="close-claim" style="margin-left:8px;" '+(busy?"disabled":"")+'>Batal</button></div>';
+  }
+
+  function submitWarranty(){
+    var w = state.warranty;
+    var inp = document.getElementById("warranty-file");
+    var file = (inp && inp.files && inp.files[0]) || w.file;
+    w.id = (w.id||"").trim().toUpperCase();
+    w.rejectedFile = (w.rejectedFile||"").trim();
+    w.reason = (w.reason||"").trim();
+    if(!w.id || !state.statusResult || String(state.statusResult.id).toUpperCase() !== w.id){ w.error = "Lacak pesanan dulu."; render(); return; }
+    if(!w.rejectedFile){ w.error = "Nama file wajib diisi."; render(); return; }
+    if(!w.reason){ w.error = "Alasan penolakan wajib diisi."; render(); return; }
+    if(!file){ w.error = "Unggah screenshot penolakan."; render(); return; }
+    if(file.size > CONFIG.maxProofSizeBytes){ w.file=file; w.error = "Ukuran screenshot >4MB."; render(); return; }
+    w.file=file; w.error=""; w.submitting=true; render();
+    readFileB64(file).then(function(b64){
+      return apiPost({action:"warranty_claim",id:w.id,rejectedFile:w.rejectedFile,reason:w.reason,
+        proofFileName:file.name,mimeType:file.type||"image/jpeg",fileData:b64});
+    }).then(function(data){
+      w.submitting = false;
+      if(data && data.success){
+        w.done = data.claim || {fileName:w.rejectedFile,status:"Menunggu",submittedAt:new Date().toISOString()};
+        w.file = null;
+        if(!state.statusResult.claims) state.statusResult.claims = [];
+        state.statusResult.claims.unshift({fileName:w.done.fileName,jumlahFile:1,status:w.done.status||"Menunggu",estimasiSelesai:null,submittedAt:w.done.submittedAt||new Date().toISOString()});
+      } else {
+        w.error = (data && (data.message||data.error)) || "Klaim gagal.";
+      }
+      render(); window.scrollTo(0,0);
+    }).catch(function(){
+      w.submitting = false;
+      w.error = "Koneksi terputus. Lacak ulang sebelum coba lagi (hindari klaim dobel).";
+      render();
+    });
+  }
+
+  // ---------- STATUS TAB ----------
   function renderStatusTab(){
-    var box = '<div class="card"><div class="field" style="margin-bottom:0;"><label>Kode Pesanan (PRJ-XXXX)</label><div style="display:flex; gap:10px;"><input type="text" id="status-id-input" value="'+escapeHtml(state.statusLookupId)+'" placeholder="Ketik kode di sini..." style="flex:1;"><button class="btn btn-primary btn-small" data-action="lookup-status" '+(state.statusLoading?"disabled":"")+'>'+(state.statusLoading?"Memuat...":"Lacak")+'</button></div></div></div>';
-    var result = state.statusError ? '<div class="msg '+(state.statusLoading?"msg-info":"msg-error")+'">'+escapeHtml(state.statusError)+'</div>' : "";
+    var box = '<div class="card"><div class="field" style="margin-bottom:0;"><label>Kode Pesanan</label>'+
+      '<div style="display:flex;gap:10px;"><input type="text" id="status-id-input" value="'+escapeHtml(state.statusLookupId)+'" placeholder="PRJ-XXXX..." style="flex:1;" autocapitalize="characters"><button class="btn btn-primary btn-small" data-action="lookup-status" '+(state.statusLoading?"disabled":"")+'>'+(state.statusLoading?"Memuat...":"Lacak")+'</button></div></div></div>';
+    var res = state.statusError ? '<div class="msg '+(state.statusLoading?"msg-info":"msg-error")+'">'+escapeHtml(state.statusError)+'</div>' : "";
     if(state.statusResult){
-      var p = state.statusResult, curIdx = STEP_ORDER.indexOf(p.status);
-      if(p.status === "Dibatalkan") result += '<div class="cancelled-banner">Mohon maaf, pesanan ini telah dibatalkan.</div>';
-      else result += '<div class="card"><div class="stepper">' + STEP_ORDER.map(function(s,i){ return '<div class="step '+(i<curIdx?"done":(i===curIdx?"active":""))+'"><div class="line"></div><div class="dot">'+(i+1)+'</div><div class="label">'+s+'</div></div>'; }).join("") + '</div>' +
-        (p.status === "Pembayaran" ? paymentBoxHtml(p.price ? p.price.total : 0, p.price && p.price.discount, p.price && p.price.promoCode) +
-          '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="status-proof-file" accept="image/*" '+(state.statusUploading?"disabled":"")+'><div class="field-note">Format JPG/PNG, maksimal 4MB</div></div>' +
-          (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : "") +
-          '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : "") +
-        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti pembayaran Anda sedang diverifikasi oleh admin. Mohon tunggu update status.</div>' +
-          '<div class="eta-note pending">\u23F3 Setelah admin mengonfirmasi pembayaranmu, jadwal pengerjaan akan langsung terkunci dan tanggal target selesai muncul otomatis di sini.</div>' : "") +
-        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queueAheadHours, "Animasimu sedang digarap oleh tim kami!", "", "jam") : "") +
+      var p = state.statusResult, idx = STEP_ORDER.indexOf(p.status);
+      if(p.status === "Dibatalkan") res += '<div class="cancelled-banner">Mohon maaf, pesanan ini telah dibatalkan.</div>';
+      else res += '<div class="card"><div class="stepper">'+STEP_ORDER.map(function(s,i){
+        return '<div class="step '+(i<idx?"done":i===idx?"active":"")+'"><div class="line"></div><div class="dot">'+(i+1)+'</div><div class="label">'+s+'</div></div>';
+      }).join("")+'</div>'+
+        (p.status === "Pembayaran" ? paymentBox(p.price?p.price.total:0,p.price&&p.price.discount,p.price&&p.price.promoCode)+
+          '<div class="field" style="margin-top:18px;"><label>Foto Bukti Transfer</label><input type="file" id="status-proof-file" accept="image/*" '+(state.statusUploading?"disabled":"")+'><div class="field-note">JPG/PNG, max 4MB</div></div>'+
+          (state.statusProofError ? '<div class="msg msg-error">'+escapeHtml(state.statusProofError)+'</div>' : '')+
+          '<button class="btn btn-primary" data-action="submit-proof-status" data-id="'+escapeHtml(p.id)+'" '+(state.statusUploading?"disabled":"")+'>'+(state.statusUploading?"Mengunggah...":"Saya Sudah Bayar")+'</button>' : '')+
+        (p.status === "Verifikasi" ? '<div class="verif-note">Bukti sedang diverifikasi admin.</div><div class="eta-note pending">⏳ Target jadwal muncul setelah admin konfirmasi.</div>' : '')+
+        (p.status === "Order Dikerjakan" ? renderEtaLocked(p.estimasiSelesai, p.queueAheadHours, "Animasimu sedang digarap!", "", "jam") : "")+
+        (p.status === "Selesai" ? '<div class="verif-note" style="background:var(--teal-bg);color:#0B6B62;">🎉 Pesanan selesai! File hasil sudah tersedia di folder Drive Anda.</div>' : "")+
         '</div>';
 
-      var showDriveLink = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
-      var driveUI = showDriveLink ? '<div class="drive-box"><div style="flex:1;"><label>File hasil animasi</label><div class="drive-note">Tautan folder Google Drive Anda sudah tersedia.</div></div><a href="'+escapeHtml(p.googleDriveLink)+'" target="_blank" rel="noopener" class="btn btn-drive">Buka Folder</a></div>' : '';
+      var showDrive = p.googleDriveLink && (p.status === "Order Dikerjakan" || p.status === "Selesai");
+      var driveUI = showDrive ? '<div class="drive-box"><div style="flex:1;"><label>File hasil animasi</label><div class="drive-note">Folder Drive Anda siap dibuka.</div></div><a href="'+escapeHtml(p.googleDriveLink)+'" target="_blank" rel="noopener" class="btn btn-drive">Buka Folder</a></div>' : "";
 
-      result += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div></div>' + driveUI + warrantyLinkHtml(p) + '</div>';
-      result += renderWarrantyForm();
-      if(p.price) result += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div>'+discountRowHtml(p.price)+'<div class="estimate-row total"><span>Total tagihan</span><span>'+fmtMoney(p.price.total||0)+'</span></div><div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700; font-size:15.5px;">'+(p.paid ? '<span style="color:var(--teal)">LUNAS</span>' : '<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
+      // warranty button
+      var wBtn = "";
+      if(p.warranty && p.warranty.eligible){
+        wBtn = '<div style="margin-top:16px;"><button class="btn btn-ghost btn-small" data-action="toggle-claim">'+(state.warranty.open?"Tutup form klaim":"🛡️ Ajukan Klaim Garansi")+'</button></div>';
+      } else if(p.paid && p.status === "Selesai" && p.warranty && !p.warranty.eligible){
+        var reasonTxt = {
+          window_expired: "Masa klaim garansi sudah berakhir.",
+          quota_exhausted: "Kuota klaim order ini sudah habis.",
+          client_monthly_limit: "Anda sudah mencapai batas klaim bulan ini."
+        }[p.warranty.reason] || "Klaim tidak tersedia.";
+        wBtn = '<div class="msg msg-warn" style="margin-top:16px;">'+escapeHtml(reasonTxt)+'</div>';
+      }
 
-      // Riwayat klaim garansi untuk kode order ini (kalau ada).
-      result += renderClaimCards(p.claims);
+      res += '<div class="card"><div class="detail-grid"><div><label>Pemesan</label><div class="detail-value">'+escapeHtml(p.clientName)+'</div></div><div><label>Platform</label><div class="detail-value">'+(p.platforms&&p.platforms.length?p.platforms.join(", "):"-")+'</div></div><div><label>Jumlah video</label><div class="detail-value">'+p.qty+' video</div></div><div><label>Klaim terpakai</label><div class="detail-value">'+(p.claimsUsed||0)+' / '+(p.warranty&&p.warranty.maxClaims||"-")+'</div></div></div>'+driveUI+wBtn+'</div>';
+
+      res += renderWarrantyForm();
+
+      if(p.price){
+        res += '<div class="card estimate-box"><div class="box-title">Ringkasan pembayaran</div>'+
+          (p.price.discount?'<div class="estimate-row discount"><span>Diskon'+(p.price.promoCode?' '+escapeHtml(p.price.promoCode):'')+'</span><span>- '+fmtMoney(p.price.discount)+'</span></div>':'')+
+          '<div class="estimate-row total"><span>Total</span><span>'+fmtMoney(p.price.total||0)+'</span></div>'+
+          '<div class="estimate-row" style="margin-top:10px;"><span>Status pembayaran</span><span style="font-weight:700;">'+(p.paid?'<span style="color:var(--teal)">LUNAS</span>':'<span style="color:var(--accent-strong)">BELUM LUNAS</span>')+'</span></div></div>';
+      }
+      res += renderClaimCards(p.claims);
     }
-    return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres pengerjaan dan unduh hasil proyek Anda.</p>' + box + result;
+    return '<h2 class="panel-title">Pelacakan Pesanan</h2><p class="panel-sub">Pantau progres & akses file hasil.</p>'+box+res;
   }
 
+  // ---------- CALC TAB ----------
   function renderCalcTab(){
     var c = state.calc, est = computePrice(c.qty);
-    var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600; color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
-    var queuedAhead = c._queueFetched ? c.queuedHoursAhead : 0;
-    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasikan biaya &amp; perkiraan waktu pengerjaan aset video Anda.</p>' +
-      '<div class="card"><div class="field"><label>Pilih Paket</label>' + packageChipsHtml(c.qty, c.isCustom, "calc") + '</div>' +
-      (c.isCustom ? customQtyFieldHtml(c.qty, "c-qty-custom") : "") +
-      '<div class="field"><label>Platform microstock</label>' + platformChipsHtml(c.platforms, "toggle-platform-calc") + '</div></div>' +
-      '<div class="card estimate-box"><div class="box-title">Rincian harga</div>' + rows + '<div class="estimate-row total"><span>Total keseluruhan</span><span>'+fmtMoney(est.total)+'</span></div></div>' +
-      (c._queueLoading ? '<div class="msg msg-info">Sedang mengecek antrian order aktif saat ini...</div>' : "") +
-      renderEtaSimulation(c.qty, queuedAhead) +
-      '<button class="btn btn-primary" data-action="use-estimate-for-order">Gunakan untuk pemesanan</button>';
+    var rows = est.items.map(function(it){ return '<div class="estimate-row"><span>'+it.label+'</span><span style="font-weight:600;color:var(--ink);">'+fmtMoney(it.value)+'</span></div>'; }).join("");
+    var ahead = c._fetched ? c.queuedHoursAhead : 0;
+    return '<h2 class="panel-title">Kalkulator Estimasi</h2><p class="panel-sub">Simulasi biaya & waktu pengerjaan.</p>'+
+      '<div class="card"><div class="field"><label>Pilih Paket</label>'+packageChips(c.qty,c.isCustom,"calc")+'</div>'+
+      (c.isCustom ? customQty(c.qty,"c-qty-custom") : "")+
+      '<div class="field"><label>Platform microstock</label>'+platformChips(c.platforms,"toggle-plat-calc")+'</div></div>'+
+      '<div class="card estimate-box"><div class="box-title">Rincian harga</div>'+rows+
+      '<div class="estimate-row total"><span>Total</span><span>'+fmtMoney(est.total)+'</span></div></div>'+
+      (c._loading ? '<div class="msg msg-info">Mengecek antrean aktif...</div>' : "")+
+      renderEtaSimulation(c.qty, ahead)+
+      '<button class="btn btn-primary" data-action="use-estimate">Gunakan untuk pemesanan</button>';
   }
 
+  // =========================================================================
+  // HANDLERS
+  // =========================================================================
   function attachHandlers(){
     var c = document.getElementById("content");
-    c.querySelectorAll("[data-tab]").forEach(function(btn){ btn.addEventListener("click", function(){ state.tab = btn.getAttribute("data-tab"); state.statusError = ""; state.orderMsg = null; render(); if(state.tab === "calc") fetchQueueForCalc(); }); });
-    var bindInp = function(id, setFn){ var e = document.getElementById(id); if(e) e.addEventListener("input", function(){ setFn(e.value); }); };
-    var bindNum = function(id, setFn){ var e = document.getElementById(id); if(e) e.addEventListener("change", function(){ setFn(Number(e.value)||0); }); };
+    c.querySelectorAll("[data-tab]").forEach(function(b){ b.addEventListener("click", function(){
+      state.tab = b.getAttribute("data-tab"); state.statusError=""; state.orderMsg=null; render();
+      if(state.tab === "calc") fetchQueue();
+    }); });
+    var bindInp = function(id, fn){ var e = document.getElementById(id); if(e) e.addEventListener("input", function(){ fn(e.value); }); };
+    var bindNum = function(id, fn){ var e = document.getElementById(id); if(e) e.addEventListener("change", function(){ fn(Number(e.value)||0); }); };
     var clickAc = function(act, fn){ c.querySelectorAll('[data-action="'+act+'"]').forEach(function(el){ el.addEventListener("click", function(){ fn(el); }); }); };
 
-    bindInp("f-clientName", function(v){ state.orderForm.clientName = v; }); bindInp("f-clientPhone", function(v){ state.orderForm.clientPhone = v; });
-
-    clickAc("toggle-platform", function(el){ var val = el.getAttribute("data-val"), idx = state.orderForm.platforms.indexOf(val); if(idx>-1) state.orderForm.platforms.splice(idx,1); else state.orderForm.platforms.push(val); render(); });
-
-    clickAc("pick-package", function(el){
-      var val = el.getAttribute("data-qty");
-      var f = state.orderForm;
-      if(val === "custom"){ f.isCustom = true; f.qty = Math.max(50, customMinQty()); }
-      else { f.isCustom = false; f.qty = Number(val); }
+    bindInp("f-clientName", function(v){ state.orderForm.clientName = v; });
+    bindInp("f-clientPhone", function(v){ state.orderForm.clientPhone = v; });
+    clickAc("toggle-platform", function(el){ var v = el.getAttribute("data-val"), i = state.orderForm.platforms.indexOf(v); if(i>-1) state.orderForm.platforms.splice(i,1); else state.orderForm.platforms.push(v); render(); });
+    clickAc("pick-pkg", function(el){
+      var v = el.getAttribute("data-qty"), f = state.orderForm;
+      if(v === "custom"){ f.isCustom=true; f.qty=Math.max(50,customMinQty()); } else { f.isCustom=false; f.qty=Number(v); }
       render();
     });
-    bindNum("f-qty-custom", function(v){ state.orderForm.qty = Math.max(Math.round(v), customMinQty()); render(); });
-
-    clickAc("pick-package-calc", function(el){
-      var val = el.getAttribute("data-qty");
-      var cst = state.calc;
-      if(val === "custom"){ cst.isCustom = true; cst.qty = Math.max(50, customMinQty()); }
-      else { cst.isCustom = false; cst.qty = Number(val); }
+    bindNum("f-qty-custom", function(v){ state.orderForm.qty = Math.max(Math.round(v),customMinQty()); render(); });
+    clickAc("pick-pkg-calc", function(el){
+      var v = el.getAttribute("data-qty"), cs = state.calc;
+      if(v === "custom"){ cs.isCustom=true; cs.qty=Math.max(50,customMinQty()); } else { cs.isCustom=false; cs.qty=Number(v); }
       render();
     });
-    bindNum("c-qty-custom", function(v){ state.calc.qty = Math.max(Math.round(v), customMinQty()); render(); });
-
-    clickAc("submit-order", function(el){
-      var f = state.orderForm;
-      if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg = {error:"Mohon lengkapi Nama dan Nomor WhatsApp."}; render(); return; }
-      if(!f.platforms.length){ state.orderMsg = {error:"Mohon pilih minimal satu platform microstock."}; render(); return; }
-      if(f.isCustom && (!f.qty || f.qty < customMinQty())){ state.orderMsg = {error:"Untuk Pesanan Besar, jumlah video minimal "+customMinQty()+"."}; render(); return; }
-      if(!f._pendingId) f._pendingId = uid();
-      var id = f._pendingId;
-      var price = computePrice(f.qty);
-      var payload = { action:"create", id:id, clientName:f.clientName.trim(), clientPhone:f.clientPhone.trim(), platforms:f.platforms.slice(), qty:f.qty, total: price.total, promoCode:(f.promoCode||"").trim() };
-      f._submitting = true; render();
-      fetch(CONFIG.webAppUrl, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) })
-        .then(function(res){ return res.json(); })
-        .then(function(data){
-          f._submitting = false;
-          if(data && data.success){
-            var backendTotal = data.project && typeof data.project.total === "number" ? data.project.total : price.total;
-            var project = { id:id, clientName:payload.clientName, clientPhone:payload.clientPhone, platforms:payload.platforms, qty:f.qty, price:{total:backendTotal}, paid:false, googleDriveLink: data.project ? data.project.googleDriveLink : "", isRepeat: !!(data.project && data.project.isRepeat), discount: (data.project && data.project.discount) || 0, promoCode: (data.project && data.project.promoCode) || "" };
-            state.orderMsg = { newId:id, project:project, phase:"awaiting_payment", proofError:"", uploading:false };
-            f._pendingId = null;
-            render(); window.scrollTo(0,0);
-          } else {
-            state.orderMsg = { error: "Gagal membuat pesanan: " + (data && (data.message || data.error) ? (data.message || data.error) : "tidak diketahui.") + " Silakan coba lagi." };
-            render();
-          }
-        })
-        .catch(function(){
-          f._submitting = false;
-          state.orderMsg = { error: "Gagal terhubung ke server. Periksa koneksi internet Anda, lalu coba lagi." };
-          render();
-        });
-    });
+    bindNum("c-qty-custom", function(v){ state.calc.qty = Math.max(Math.round(v),customMinQty()); render(); });
 
     var promoEl = document.getElementById("f-promo");
     if(promoEl) promoEl.addEventListener("input", function(){
       var f = state.orderForm; f.promoCode = promoEl.value;
       if(f.promo || f.promoMsg){
-        f.promo = null; f.promoMsg = null; render();
-        var el = document.getElementById("f-promo"); if(el){ el.focus(); var n = el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
+        f.promo=null; f.promoMsg=null; render();
+        var el = document.getElementById("f-promo");
+        if(el){ el.focus(); var n = el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
       }
     });
     clickAc("apply-promo", function(){
       var f = state.orderForm, code = (f.promoCode||"").trim().toUpperCase();
-      if(!code){ f.promo = null; f.promoMsg = "Masukkan kode promo terlebih dahulu."; render(); return; }
-      f.promoLoading = true; f.promoMsg = null; render();
-      apiGet({ action:"promo", code:code, qty:f.qty }).then(function(data){
-        f.promoLoading = false;
-        if(data && data.valid){ f.promo = { code:data.code, discount:data.discount }; f.promoCode = data.code; f.promoMsg = data.message; }
-        else { f.promo = null; f.promoMsg = (data && data.message) || "Kode promo tidak valid."; }
+      if(!code){ f.promo=null; f.promoMsg="Isi kode promo dulu."; render(); return; }
+      f.promoLoading=true; f.promoMsg=null; render();
+      apiGet({action:"promo",code:code,qty:f.qty}).then(function(d){
+        f.promoLoading=false;
+        if(d && d.valid){ f.promo={code:d.code,discount:d.discount}; f.promoCode=d.code; f.promoMsg=d.message; }
+        else { f.promo=null; f.promoMsg=(d&&d.message)||"Kode tidak valid."; }
         render();
-      }).catch(function(){ f.promoLoading = false; f.promo = null; f.promoMsg = "Gagal mengecek kode promo. Periksa koneksi internet Anda."; render(); });
+      }).catch(function(){ f.promoLoading=false; f.promo=null; f.promoMsg="Gagal cek promo."; render(); });
     });
 
+    clickAc("submit-order", function(){
+      var f = state.orderForm;
+      if(!f.clientName.trim() || !f.clientPhone.trim()){ state.orderMsg={error:"Lengkapi nama & WhatsApp."}; render(); return; }
+      if(!f.platforms.length){ state.orderMsg={error:"Pilih minimal 1 platform."}; render(); return; }
+      if(f.isCustom && (!f.qty || f.qty < customMinQty())){ state.orderMsg={error:"Minimal "+customMinQty()+" video."}; render(); return; }
+      if(!f._pendingId) f._pendingId = uid();
+      var id = f._pendingId;
+      var price = computePrice(f.qty);
+      f._submitting = true; render();
+      apiPost({action:"create",id:id,clientName:f.clientName.trim(),clientPhone:f.clientPhone.trim(),platforms:f.platforms.slice(),qty:f.qty,total:price.total,promoCode:(f.promoCode||"").trim()})
+        .then(function(d){
+          f._submitting = false;
+          if(d && d.success){
+            var bt = d.project && typeof d.project.total === "number" ? d.project.total : price.total;
+            var proj = {id:id,clientName:f.clientName,platforms:f.platforms.slice(),qty:f.qty,price:{total:bt},paid:false,googleDriveLink:d.project?d.project.googleDriveLink:"",isRepeat:!!(d.project&&d.project.isRepeat),discount:(d.project&&d.project.discount)||0,promoCode:(d.project&&d.project.promoCode)||""};
+            state.orderMsg = {newId:id,project:proj,phase:"awaiting_payment",proofError:"",uploading:false};
+            f._pendingId = null;
+            render(); window.scrollTo(0,0);
+          } else {
+            state.orderMsg = {error:"Gagal: "+((d&&(d.message||d.error))||"tidak diketahui")};
+            render();
+          }
+        }).catch(function(){ f._submitting=false; state.orderMsg={error:"Koneksi gagal. Coba lagi."}; render(); });
+    });
+    clickAc("submit-proof", function(){
+      var inp = document.getElementById("proof-file-input");
+      var file = inp && inp.files && inp.files[0];
+      if(!file){ state.orderMsg.proofError="Pilih file bukti."; render(); return; }
+      if(file.size > CONFIG.maxProofSizeBytes){ state.orderMsg.proofError="File >4MB."; render(); return; }
+      state.orderMsg.proofError=""; state.orderMsg.uploading=true; render();
+      var proj = state.orderMsg.project;
+      uploadProof(proj.id, file).then(function(d){
+        state.orderMsg.uploading = false;
+        if(d && d.success){ proj.status="Verifikasi"; state.orderMsg.phase="proof_sent"; }
+        else { state.orderMsg.proofError = "Gagal: "+((d&&d.error)||"?"); }
+        render(); window.scrollTo(0,0);
+      }).catch(function(){ state.orderMsg.uploading=false; state.orderMsg.proofError="Koneksi gagal."; render(); });
+    });
+    clickAc("order-new", function(){ state.orderForm = freshOrderForm(); state.orderMsg = null; render(); });
+    clickAc("copy-id", function(el){ if(navigator.clipboard) navigator.clipboard.writeText(el.getAttribute("data-id")).catch(function(){}); var o = el.innerText; el.innerText = "Tersalin!"; setTimeout(function(){ el.innerText = o; },1800); });
+    clickAc("goto-status", function(el){ state.statusLookupId = el.getAttribute("data-id"); state.tab = "status"; render(); lookupStatus(); });
+    bindInp("status-id-input", function(v){ state.statusLookupId = v.toUpperCase(); });
+    clickAc("lookup-status", lookupStatus);
+    clickAc("submit-proof-status", function(el){
+      var id = el.getAttribute("data-id");
+      var inp = document.getElementById("status-proof-file");
+      var file = inp && inp.files && inp.files[0];
+      if(!file){ state.statusProofError="Pilih file."; render(); return; }
+      if(file.size > CONFIG.maxProofSizeBytes){ state.statusProofError="File >4MB."; render(); return; }
+      state.statusProofError=""; state.statusUploading=true; render();
+      uploadProof(id, file).then(function(d){
+        state.statusUploading=false;
+        if(d && d.success){ state.statusResult.status="Verifikasi"; }
+        else state.statusProofError = "Gagal: "+((d&&d.error)||"?");
+        render();
+      }).catch(function(){ state.statusUploading=false; state.statusProofError="Koneksi gagal."; render(); });
+    });
+    clickAc("toggle-plat-calc", function(el){ var v = el.getAttribute("data-val"), i = state.calc.platforms.indexOf(v); if(i>-1) state.calc.platforms.splice(i,1); else state.calc.platforms.push(v); render(); });
+    clickAc("use-estimate", function(){ state.orderForm=freshOrderForm(); state.orderForm.qty=state.calc.qty; state.orderForm.isCustom=state.calc.isCustom; state.orderForm.platforms=state.calc.platforms.slice(); state.tab="order"; render(); window.scrollTo(0,0); });
+
+    // Warranty
     bindInp("w-file-name", function(v){ state.warranty.rejectedFile = v; });
+    bindInp("w-reason", function(v){ state.warranty.reason = v; });
     var wf = document.getElementById("warranty-file");
-    if(wf) wf.addEventListener("change", function(){ state.warranty.file = (wf.files && wf.files[0]) || null; });
+    if(wf) wf.addEventListener("change", function(){ state.warranty.file = (wf.files&&wf.files[0])||null; });
     clickAc("submit-warranty", submitWarranty);
     clickAc("toggle-claim", function(){
-      var project = state.statusResult;
-      if(!project) return;
-      var isOpening = !state.warranty.open;
-      if(isOpening && state.warranty.id !== project.id){
+      var p = state.statusResult;
+      if(!p) return;
+      var opening = !state.warranty.open;
+      if(opening && state.warranty.id !== p.id){
         state.warranty = freshWarranty();
-        state.warranty.id = project.id;
+        state.warranty.id = p.id;
+        state.warranty.elig = p.warranty;
       }
-      state.warranty.open = isOpening;
+      state.warranty.open = opening;
       render();
-      if(isOpening){
-        var claimCard = document.getElementById("claim-form-card");
-        if(claimCard) claimCard.scrollIntoView({behavior:"smooth", block:"start"});
+      if(opening){
+        var card = document.getElementById("claim-form-card");
+        if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
       }
     });
     clickAc("claim-another", function(){
       var id = state.statusResult && state.statusResult.id;
+      var elig = state.warranty.elig;
       state.warranty = freshWarranty();
       state.warranty.id = id || "";
+      state.warranty.elig = elig;
       state.warranty.open = true;
       render();
-      var claimCard = document.getElementById("claim-form-card");
-      if(claimCard) claimCard.scrollIntoView({behavior:"smooth", block:"start"});
+      var card = document.getElementById("claim-form-card");
+      if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
     });
     clickAc("close-claim", function(){ state.warranty.open = false; render(); });
-
-    clickAc("order-new", function(){ state.orderForm = freshOrderForm(); state.orderMsg = null; render(); });
-    clickAc("submit-proof", function(){
-      var input = document.getElementById("proof-file-input");
-      var file = input && input.files && input.files[0];
-      if(!file){ state.orderMsg.proofError = "Mohon pilih foto bukti transfer terlebih dahulu."; render(); return; }
-      if(file.size > CONFIG.maxProofSizeBytes){ state.orderMsg.proofError = "Ukuran foto terlalu besar (maksimal 4MB)."; render(); return; }
-      state.orderMsg.proofError = ""; state.orderMsg.uploading = true; render();
-      var project = state.orderMsg.project;
-      uploadProofFile(project.id, file).then(function(data){
-        state.orderMsg.uploading = false;
-        if(data && data.success){
-          project.status = "Verifikasi"; project.buktiTransferLink = data.link; project.verifiedAt = data.verifiedAt || new Date().toISOString();
-          state.orderMsg.phase = "proof_sent";
-        } else {
-          state.orderMsg.proofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
-        }
-        render(); window.scrollTo(0,0);
-      }).catch(function(){
-        state.orderMsg.uploading = false; state.orderMsg.proofError = "Gagal mengunggah bukti transfer. Periksa koneksi internet Anda.";
-        render();
-      });
-    });
-    clickAc("copy-id", function(el){
-      if(navigator.clipboard) navigator.clipboard.writeText(el.getAttribute("data-id")).catch(function(){});
-      var btn = el; var old = btn.innerText; btn.innerText = "Tersalin!"; setTimeout(function(){ btn.innerText = old; }, 2000);
-    });
-    clickAc("goto-status", function(el){ state.statusLookupId = el.getAttribute("data-id"); state.tab = "status"; lookupStatus(); });
-    bindInp("status-id-input", function(v){ state.statusLookupId = v; }); clickAc("lookup-status", lookupStatus);
-    clickAc("submit-proof-status", function(el){
-      var id = el.getAttribute("data-id");
-      var input = document.getElementById("status-proof-file");
-      var file = input && input.files && input.files[0];
-      if(!file){ state.statusProofError = "Mohon pilih foto bukti transfer terlebih dahulu."; render(); return; }
-      if(file.size > CONFIG.maxProofSizeBytes){ state.statusProofError = "Ukuran foto terlalu besar (maksimal 4MB)."; render(); return; }
-      state.statusProofError = ""; state.statusUploading = true; render();
-      uploadProofFile(id, file).then(function(data){
-        state.statusUploading = false;
-        if(data && data.success){
-          state.statusResult.status = "Verifikasi"; state.statusResult.buktiTransferLink = data.link; state.statusResult.statusUpdatedAt = data.verifiedAt || new Date().toISOString();
-        } else {
-          state.statusProofError = "Gagal mengunggah: " + (data && data.error ? data.error : "tidak diketahui.");
-        }
-        render();
-      }).catch(function(){
-        state.statusUploading = false; state.statusProofError = "Gagal mengunggah bukti transfer. Periksa koneksi internet Anda.";
-        render();
-      });
-    });
-    clickAc("toggle-platform-calc", function(el){ var val = el.getAttribute("data-val"), idx = state.calc.platforms.indexOf(val); if(idx>-1) state.calc.platforms.splice(idx,1); else state.calc.platforms.push(val); render(); });
-    clickAc("use-estimate-for-order", function(){ state.orderForm = freshOrderForm(); state.orderForm.qty = state.calc.qty; state.orderForm.isCustom = state.calc.isCustom; state.orderForm.platforms = state.calc.platforms.slice(); state.tab = "order"; render(); window.scrollTo(0,0); });
   }
 
+  // =========================================================================
+  // LOOKUP & SYNC
+  // =========================================================================
   function lookupStatus(){
-    var idEl = document.getElementById("status-id-input"), id = (idEl ? idEl.value : state.statusLookupId).trim().toUpperCase(); state.statusLookupId = id;
-    var requestId = ++state.statusRequestId;
-    if(!id){
-      state.statusLoading = false; state.statusError = "Harap masukkan kode pesanan."; state.statusResult = null; render(); return;
-    }
-    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1){
-      state.statusLoading = false; state.statusError = "Sistem database belum dihubungkan. Mohon hubungi admin."; render(); return;
-    }
-    var sameOrder = state.statusResult && String(state.statusResult.id).toUpperCase() === id;
+    var el = document.getElementById("status-id-input");
+    var id = (el ? el.value : state.statusLookupId).trim().toUpperCase();
+    state.statusLookupId = id;
+    var rid = ++state.statusRequestId;
+    if(!id){ state.statusLoading=false; state.statusError="Masukkan kode pesanan."; state.statusResult=null; render(); return; }
+    var same = state.statusResult && String(state.statusResult.id).toUpperCase() === id;
     state.statusLoading = true;
-    state.statusError = "Sedang memuat status pesanan...";
-    if(!sameOrder) state.statusResult = null;
+    state.statusError = "Memuat status...";
+    if(!same) state.statusResult = null;
     if(state.warranty.id !== id){
       state.warranty = freshWarranty();
       state.warranty.id = id;
     }
     state.statusProofError = "";
-    state.statusUploading = false;
     render();
-    var url = CONFIG.webAppUrl + "?id=" + encodeURIComponent(id) + "&_t=" + Date.now();
-    fetchJson(url, {}, { maxAttempts:2, timeoutMs:15000 }).then(function(data){
-      if(requestId !== state.statusRequestId) return;
-      state.statusLoading = false;
-      if(data && data.error){
-        state.statusError = "Kode pesanan tidak ditemukan. Periksa kembali kode yang Anda masukkan.";
-        state.statusResult = null;
-      } else if(!data || !data.id){
-        state.statusError = "Server mengirim data yang belum lengkap. Silakan coba lagi.";
-        state.statusResult = null;
-      } else {
-        state.statusError = "";
-        state.statusResult = data;
-        if(state.warranty.id !== id){
-          state.warranty = freshWarranty();
-          state.warranty.id = id;
-        }
-      }
-      render();
-    }).catch(function(error){
-      if(requestId !== state.statusRequestId) return;
-      state.statusLoading = false;
-      state.statusError = error && error.isTimeout
-        ? "Server lama merespons. Status belum termuat; silakan coba lagi sebentar."
-        : "Status belum termuat. Koneksi atau server sedang bermasalah; coba lagi sebentar.";
-      render();
-    });
+    fetchJson(CONFIG.webAppUrl + "?id=" + encodeURIComponent(id) + "&_t=" + Date.now(), {}, {maxAttempts:2,timeoutMs:15000})
+      .then(function(d){
+        if(rid !== state.statusRequestId) return;
+        state.statusLoading = false;
+        if(d && d.error){ state.statusError="Kode tidak ditemukan. Periksa kembali."; state.statusResult=null; }
+        else if(!d || !d.id){ state.statusError="Data tidak lengkap."; state.statusResult=null; }
+        else { state.statusError=""; state.statusResult=d; state.warrantyElig=d.warranty; }
+        render();
+      })
+      .catch(function(e){
+        if(rid !== state.statusRequestId) return;
+        state.statusLoading = false;
+        state.statusError = e && e.isTimeout ? "Server lambat. Coba lagi." : "Gagal memuat. Coba lagi.";
+        render();
+      });
   }
+
+  function fetchQueue(){
+    if(state.calc._fetched || state.calc._loading) return;
+    state.calc._loading = true;
+    fetchJson(CONFIG.webAppUrl + "?action=queue", {}, {maxAttempts:2,timeoutMs:15000})
+      .then(function(d){
+        state.calc._loading = false; state.calc._fetched = true;
+        state.calc.queuedHoursAhead = (d && typeof d.queuedHoursAhead === "number") ? d.queuedHoursAhead : 0;
+        render();
+      }).catch(function(){ state.calc._loading=false; state.calc._fetched=true; render(); });
+  }
+
+  function syncConfig(){
+    if(!CONFIG.webAppUrl || CONFIG.webAppUrl.indexOf("ISI_URL") > -1) return;
+    fetchJson(CONFIG.webAppUrl + "?action=config", {}, {maxAttempts:1,timeoutMs:6000})
+      .then(function(d){
+        if(d && d.production) CONFIG.production = d.production;
+        if(d && d.rates) CONFIG.rates = d.rates;
+        if(d && d.allowedPlatforms && d.allowedPlatforms.length) PLATFORMS = d.allowedPlatforms;
+        if(d && d.warranty) CONFIG.warranty = d.warranty;
+        render();
+      }).catch(function(){});
+  }
+
   render();
-  syncRemoteConfig();
+  syncConfig();
 })();
 </script>
 </body>
