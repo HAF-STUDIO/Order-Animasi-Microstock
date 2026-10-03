@@ -138,26 +138,26 @@ function price(q){
 }
 function dpOf(t,paid){return Math.max(Math.ceil(t*C.dpPct/100)-(paid||0),0)}
 
-/* ETA (sama dengan perhitungan server) */
-function inWin(h){var p=C.prod;return p.end>p.start?(h>=p.start&&h<p.end):(h>=p.start||h<p.end)}
-function hpv(){var p=C.prod;return(p.end>p.start?p.end-p.start:24-p.start+p.end)/Math.max(p.vpd,1)}
-function target(base,hrs){
-  var p=C.prod,off=C.tz*3600000,cur=new Date(base.getTime()+off),rem=hrs*60,g=0;
-  while(rem>1e-6&&g++<100000){
-    var h=cur.getUTCHours(),m=cur.getUTCMinutes();
-    if(inWin(h)){var left=(p.end>p.start?p.end-h:(h>=p.start?24-h+p.end:p.end-h))*60-m,c=Math.min(rem,left);cur=new Date(cur.getTime()+c*60000);rem-=c}
-    else{var st=(h<p.start?p.start-h:24-h+p.start)*60-m;cur=new Date(cur.getTime()+st*60000)}
-  }
-  return new Date(cur.getTime()-off)
-}
+/* ETA: dihitung SERVER (hari kerja Senin-Jumat, kuota harian, SLA per paket). Halaman hanya menampilkan. */
 function fdate(d){
   var a=d.toLocaleDateString("id-ID",{timeZone:"Asia/Jakarta",weekday:"long",day:"numeric",month:"long",year:"numeric"});
   var b=d.toLocaleTimeString("id-ID",{timeZone:"Asia/Jakarta",hour:"2-digit",minute:"2-digit",hour12:false}).replace(".",":");
   return a+" pukul "+b+" WIB"
 }
+var ETAC={};
+setInterval(function(){ETAC={}},300000);
 function etaSim(q){
-  var d=target(new Date(),C.prod.buffer+(C.queueHours||0)+q*hpv());
-  return '<div class="eta">🎬 Jika pembayaran dikonfirmasi sekarang, target selesai sekitar <strong>'+e(fdate(d))+'</strong>.<small>Tanggal final dikunci saat admin mengonfirmasi pembayaran.</small></div>'
+  var c=ETAC[q];
+  if(!c){
+    getq({action:"eta",qty:q}).then(function(d){
+      ETAC[q]=(d&&d.eta)?d:{fail:1};
+      var ae=document.activeElement;
+      if(!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)))render()
+    }).catch(function(){ETAC[q]={fail:1}});
+    return '<div class="eta pend">⏳ Menghitung perkiraan selesai...</div>'
+  }
+  if(c.fail)return '';
+  return '<div class="eta">🎬 Jika pembayaran dikonfirmasi sekarang, target selesai sekitar <strong>'+e(fdate(new Date(c.eta)))+'</strong>.<small>Hari kerja Senin-Jumat. Tanggal final dikunci saat admin mengonfirmasi pembayaran.</small></div>'
 }
 function etaLock(iso,intro,cls,note){
   if(!iso)return '<div class="eta pend">⏳ Tanggal target muncul setelah admin mengonfirmasi.</div>';
