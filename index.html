@@ -84,6 +84,11 @@ input[type=file]{width:100%;background:var(--alt);border:1px dashed var(--bd2);b
 .quota{display:flex;justify-content:space-between;gap:12px;font-weight:700;color:#8A5A00;padding:10px 0;border-top:1px dashed #FFE0A3;font-size:13.5px}
 .agree{display:flex;gap:10px;align-items:flex-start;margin-bottom:18px;font-size:14px;color:var(--soft)}.agree input{width:20px;height:20px;margin-top:2px;flex:none}
 .row2{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.flh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-size:13px;color:var(--soft);font-weight:600}
+.fl{max-height:260px;overflow:auto;border:1px solid var(--bd);border-radius:8px;padding:4px 12px;background:var(--alt)}
+.fi{display:flex;gap:10px;align-items:center;margin:0;padding:9px 0;font-weight:500;font-size:14px;color:var(--ink)}
+.fi input{width:20px;height:20px;flex:none}.fi.dis{color:var(--faint)}
+.cr{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--bd)}.cn{font-weight:600;word-break:break-all}
 footer{text-align:center;color:var(--faint);font-size:13px;margin:44px 0 60px;padding:0 20px}
 </style>
 </head>
@@ -98,7 +103,7 @@ var C={
   name:"Order Animasi Microstock",
   rates:{packages:[{qty:10,price:75000,label:"Starter"},{qty:20,price:120000,label:"Standar"},{qty:30,price:150000,label:"Maksimal"}],over:5000},
   prod:{vpd:20,start:19,end:24,buffer:0.5},
-  dpPct:50,tz:7,maxProof:4*1024*1024,queueHours:0,
+  dpPct:50,war:{days:30,pct:100,auto:true,maxBatch:50},tz:7,maxProof:4*1024*1024,queueHours:0,
   bank:{name:"BCA",no:"5410769257",holder:"Hersani Ardia Firmansyah"}
 };
 var PLATS=["Adobe Stock","Shutterstock"];
@@ -109,23 +114,22 @@ var TYPES=[
  {k:"Mirip",t:"Konten mirip (similar content)"},
  {k:"Nilai Komersial",t:"Kurang nilai komersial"}];
 var CONCEPT={"Mirip":1,"Nilai Komersial":1};
-var TNC=[
+function tnc(){var W=C.war;return [
  "Garansi berlaku untuk file yang ditolak platform karena <b>masalah teknis</b> (blur, noise, artifacts, exposure), <b>izin/properti</b> yang terlihat di video (logo, tato, karya seni, wajah), <b>konten mirip</b>, atau <b>kurang nilai komersial</b>.",
  "Bentuknya <b>perbaikan file</b> (teknis, properti) atau <b>video pengganti dengan konsep baru</b> (mirip, nilai komersial). Tidak ada pengembalian dana.",
- "Pesanan harus <b>lunas</b> dan berstatus <b>Selesai</b>. Klaim dibuka <b>14 hari</b> sejak status Selesai dan tidak diperpanjang.",
- "Kuota revisi standar <b>20%</b> dari jumlah video (min. 1, maks. 10). Pengajuan melebihi kuota, sampai 50%, ditinjau admin sebagai cacat produksi massal. Kuota hanya terpakai untuk klaim yang disetujui.",
- "Ganti Konsep (mirip / nilai komersial) di luar kuota revisi, maksimal <b>50%</b> dari jumlah video per pesanan.",
- "Satu file di satu platform hanya bisa diklaim <b>satu kali</b>. Maksimal 3 klaim menunggu sekaligus.",
+ "Pesanan harus <b>lunas</b> dan berstatus <b>Selesai</b>. Klaim dibuka <b>"+W.days+" hari</b> sejak status Selesai (atau sejak lunas bila pelunasan setelah Selesai) dan tidak diperpanjang.",
+ W.pct>=100?"<b>Semua file</b> dalam pesanan boleh diklaim (100% dari jumlah video).":"Kuota klaim <b>"+W.pct+"%</b> dari jumlah video per pesanan.",
+ "Satu file di satu platform hanya bisa diklaim <b>satu kali</b>. Anda bisa memilih <b>banyak file sekaligus</b> dengan satu screenshot.",
  "Wajib melampirkan <b>screenshot penolakan</b> dari platform yang memuat nama file, alasan, dan tanggal.",
  "<b>Tidak ditanggung:</b> kesalahan label AI, judul, atau keyword, masalah akun kontributor, dan file yang sudah diubah setelah diterima.",
- "Revisi dikerjakan setelah pesanan baru. Unggah hasil revisi hanya ke platform yang menolak. Keputusan admin bersifat final."
-];
+ (W.auto?"Klaim langsung masuk antrean revisi. ":"")+"Revisi dikerjakan setelah pesanan baru. Unggah hasil revisi hanya ke platform yang menolak. Admin berhak menolak klaim yang tidak memenuhi syarat."
+]}
 var LSK="haf_last_id";
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k)||"";localStorage.setItem(k,v)}catch(x){return ""}}
 var S={tab:"order",form:newForm(),om:null,pm:"lunas",lid:ls(LSK),res:null,err:"",loading:false,rid:0,upl:false,perr:"",cl:newClaim()};
 
 function newForm(){return{name:"",phone:"",plats:[],qty:10,custom:false,pid:null,busy:false,code:"",promo:null,pmsg:null,pload:false,err:""}}
-function newClaim(){return{open:false,type:"Teknis",plat:"",file:"",reason:"",fobj:null,agree:false,busy:false,err:"",done:null}}
+function newClaim(){return{open:false,type:"Teknis",plat:"",file:"",files:[],reason:"",fobj:null,agree:false,busy:false,err:"",done:null}}
 function uid(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="PRJ-",b=new Uint32Array(8);(window.crypto||window.msCrypto).getRandomValues(b);for(var i=0;i<8;i++)s+=a[b[i]%a.length];return s}
 function e(s){return s==null?"":String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function rp(n){return "Rp "+Math.round(Number(n)||0).toLocaleString("id-ID")}
@@ -257,32 +261,45 @@ function tabOrder(){
    '<button class="btn b1" data-a="submit" '+(f.busy?"disabled":"")+'>'+(f.busy?"Mengirim...":"Pesan Sekarang")+'</button>'
 }
 
+/* klaim garansi: pilih banyak file sekaligus */
+function claimedKeys(){var m={};((S.res&&S.res.claims)||[]).forEach(function(c){m[String(c.fileName).toLowerCase()+"|"+String(c.platform).toLowerCase()]=c.status});return m}
+
 function claimCards(list){
   if(!list||!list.length)return"";
-  return '<div class="bt" style="margin-top:6px">Riwayat klaim</div>'+list.map(function(c){
-    var b="",cn=CONCEPT[c.claimType];
-    if(c.status==="Menunggu")b='<div class="ok">Klaim sedang ditinjau admin.</div>';
-    else if(c.status==="Dikerjakan")b=etaLock(c.estimasiSelesai,(cn?"Video pengganti untuk ":"Revisi file ")+e(c.fileName)+" sedang dikerjakan.","cl");
-    else if(c.status==="Selesai")b='<div class="ok">'+(cn?"Video pengganti":"Revisi")+' untuk <b>'+e(c.fileName)+'</b> selesai. Cek folder hasil dan unggah hanya ke '+e(c.platform||"platform yang menolak")+'.</div>';
-    else if(c.status==="Ditolak")b='<div class="cancel">Klaim untuk '+e(c.fileName)+' ditolak.'+(c.alasan?" Catatan admin: "+e(c.alasan):"")+'</div>';
-    return '<div class="card cc"><div class="bt ct">'+e(c.fileName)+' <span class="cb '+e(c.status)+'">'+e(c.status)+'</span> <span class="tag">'+e(c.claimType||"Teknis")+(c.platform?" · "+e(c.platform):"")+'</span></div>'+b+'</div>'
-  }).join("")
+  var act=list.filter(function(c){return c.status==="Dikerjakan"}),done=list.filter(function(c){return c.status==="Selesai"}).length,
+      wait=list.some(function(c){return c.status==="Menunggu"}),last=null;
+  act.forEach(function(c){if(c.estimasiSelesai&&(!last||c.estimasiSelesai>last))last=c.estimasiSelesai});
+  var h='<div class="card cc"><div class="bt">Riwayat klaim ('+list.length+' file)</div>';
+  if(act.length)h+=etaLock(last,act.length+" file klaim sedang dikerjakan.","cl","Target ini batas akhir semua file; sebagian bisa selesai lebih cepat.");
+  if(wait)h+='<div class="ok">Sebagian klaim menunggu peninjauan admin.</div>';
+  if(done)h+='<div class="ok">'+done+' file selesai direvisi. Cek folder hasil dan unggah ulang hanya ke platform yang menolak.</div>';
+  return h+list.map(function(c){
+    return '<div class="cr"><span class="cn">'+e(c.fileName)+'</span><span class="cb '+e(c.status)+'">'+e(c.status)+'</span><span class="tag">'+e(c.claimType||"Teknis")+(c.platform?" · "+e(c.platform):"")+'</span>'+
+      (c.status==="Ditolak"&&c.alasan?'<div class="note" style="width:100%">Catatan admin: '+e(c.alasan)+'</div>':"")+'</div>'
+  }).join("")+'</div>'
 }
 
 function claimForm(p){
   var c=S.cl,w=p.warranty||{};if(!c.open)return"";
-  if(c.done)return '<div class="card"><div class="bt">Klaim terkirim ✅</div><div class="ok">Klaim untuk <b>'+e(c.done.fileName)+'</b> tercatat dengan status <b>Menunggu</b>. Admin akan meninjau.</div><div class="row2"><button class="btn b2 sm" data-a="claim-more">Klaim file lain</button><button class="btn b2 sm" data-a="claim-close">Tutup</button></div></div>';
-  var files=w.deliveredFiles||[],cn=!!CONCEPT[c.type];
+  if(c.done){var d=c.done,auto=d.status==="Dikerjakan";
+    return '<div class="card"><div class="bt">Klaim terkirim ✅</div><div class="ok"><b>'+(d.count||1)+' file</b> berhasil diklaim. '+(auto?"Klaim disetujui otomatis dan sudah masuk antrean revisi. Target selesai tampil di Riwayat klaim.":"Status <b>Menunggu</b>, admin akan meninjau.")+(d.skipped?" ("+d.skipped+" file dilewati karena sudah pernah diklaim.)":"")+'</div><div class="row2"><button class="btn b2 sm" data-a="claim-more">Klaim file lain</button><button class="btn b2 sm" data-a="claim-close">Tutup</button></div></div>'}
+  var files=w.deliveredFiles||[],cn=!!CONCEPT[c.type],ck=claimedKeys(),pl=(c.plat||"").toLowerCase();
+  var isDone=function(x){return !!(c.plat&&ck[x.toLowerCase()+"|"+pl])};
+  var avail=files.filter(function(x){return !isDone(x)}),allOn=avail.length>0&&avail.every(function(x){return c.files.indexOf(x)>-1});
+  var fileUi=files.length?
+    '<div class="flh"><span>'+c.files.length+' file dipilih</span><button type="button" class="btn b2 sm" data-a="call">'+(allOn?"Hapus pilihan":"Pilih semua")+'</button></div><div class="fl">'+
+      files.map(function(x){var dn=isDone(x);return '<label class="fi '+(dn?"dis":"")+'"><input type="checkbox" data-a="cfile" data-v="'+e(x)+'" '+(c.files.indexOf(x)>-1&&!dn?"checked":"")+(dn?" disabled":"")+'><span>'+e(x)+(dn?" · sudah diklaim":"")+'</span></label>'}).join("")+'</div>'+(c.plat?"":'<div class="note">Pilih platform dulu agar file yang sudah diklaim ditandai.</div>'):
+    '<textarea id="c-file" placeholder="Satu nama file per baris, mis.&#10;anim_01.mp4&#10;anim_02.mp4">'+e(c.file)+'</textarea><div class="note">Boleh banyak file, pisahkan dengan baris baru atau koma.</div>';
   return (c.err?'<div class="msg err">'+e(c.err)+'</div>':"")+'<div class="card" id="claim-card"><div class="bt">Ajukan Klaim Garansi</div>'+
-   '<details class="rules"><summary>Syarat &amp; Ketentuan Garansi</summary><ol>'+TNC.map(function(t){return "<li>"+t+"</li>"}).join("")+'</ol></details>'+
-   '<div class="rules" style="padding:0 20px"><div class="quota"><span>Kuota revisi tersisa</span><span>'+(w.remaining!=null?w.remaining+" dari "+w.maxClaims+" file":"-")+'</span></div><div class="quota"><span>Ganti Konsep tersisa</span><span>'+(w.conceptRemaining!=null?w.conceptRemaining+" file":"-")+'</span></div></div>'+
+   '<details class="rules"><summary>Syarat &amp; Ketentuan Garansi</summary><ol>'+tnc().map(function(t){return "<li>"+t+"</li>"}).join("")+'</ol></details>'+
+   '<div class="rules" style="padding:0 20px"><div class="quota"><span>Sisa kuota klaim</span><span>'+(w.remaining!=null?w.remaining+" dari "+w.maxClaims+" file":"-")+'</span></div></div>'+
    '<div class="f"><label>Alasan penolakan</label><select id="c-type">'+TYPES.map(function(t){return '<option value="'+t.k+'" '+(c.type===t.k?"selected":"")+'>'+e(t.t)+'</option>'}).join("")+'</select>'+(cn?'<div class="note">Akan dikerjakan sebagai video pengganti dengan konsep baru.</div>':"")+'</div>'+
    '<div class="f"><label>Platform yang menolak</label><select id="c-plat"><option value="">Pilih platform</option>'+(p.platforms&&p.platforms.length?p.platforms:PLATS).map(function(x){return '<option '+(c.plat===x?"selected":"")+'>'+e(x)+'</option>'}).join("")+'</select></div>'+
-   '<div class="f"><label>Nama file yang ditolak</label>'+(files.length?'<select id="c-file"><option value="">Pilih file</option>'+files.map(function(x){return '<option '+(c.file===x?"selected":"")+'>'+e(x)+'</option>'}).join("")+'</select>':'<input type="text" id="c-file" value="'+e(c.file)+'" placeholder="anim_01.mp4" autocomplete="off">')+'</div>'+
-   '<div class="f"><label>Teks penolakan dari platform</label><input type="text" id="c-reason" value="'+e(c.reason)+'" placeholder="Misal: Artifacts detected" autocomplete="off"><div class="note">Salin persis dari Adobe Stock / Shutterstock.</div></div>'+
-   '<div class="f"><label>Screenshot bukti penolakan</label><input type="file" id="c-shot" accept="image/*" '+(c.busy?"disabled":"")+'>'+(c.fobj?'<div class="picked">Dipilih: '+e(c.fobj.name)+'</div>':"")+'<div class="note">Harus memuat nama file, alasan, dan tanggal.</div></div>'+
+   '<div class="f"><label>File yang ditolak</label>'+fileUi+'</div>'+
+   '<div class="f"><label>Teks penolakan dari platform</label><input type="text" id="c-reason" value="'+e(c.reason)+'" placeholder="Misal: Artifacts detected" autocomplete="off"><div class="note">Salin persis dari Adobe Stock / Shutterstock. Satu alasan untuk semua file yang dipilih.</div></div>'+
+   '<div class="f"><label>Screenshot bukti penolakan</label><input type="file" id="c-shot" accept="image/*" '+(c.busy?"disabled":"")+'>'+(c.fobj?'<div class="picked">Dipilih: '+e(c.fobj.name)+'</div>':"")+'<div class="note">Satu screenshot cukup untuk semua file, asalkan memuat nama file, alasan, dan tanggal.</div></div>'+
    '<label class="agree"><input type="checkbox" id="c-agree" '+(c.agree?"checked":"")+'><span>Saya sudah membaca dan menyetujui Syarat &amp; Ketentuan garansi.</span></label>'+
-   '<button class="btn b1" data-a="claim-send" '+(c.busy?"disabled":"")+'>'+(c.busy?"Mengirim...":"Kirim Klaim")+'</button> <button class="btn b2 sm" data-a="claim-close" style="margin-top:10px" '+(c.busy?"disabled":"")+'>Batal</button></div>'
+   '<button class="btn b1" data-a="claim-send" '+(c.busy?"disabled":"")+'>'+(c.busy?"Mengirim...":"Kirim Klaim"+(c.files.length>1?" ("+c.files.length+" file)":""))+'</button> <button class="btn b2 sm" data-a="claim-close" style="margin-top:10px" '+(c.busy?"disabled":"")+'>Batal</button></div>'
 }
 
 /* kartu "langkah Anda sekarang" — satu aksi jelas di tiap tahap */
@@ -319,7 +336,7 @@ function tabStatus(){
       var wb="";
       if(w.eligible)wb='<div class="row2" style="margin-bottom:18px"><button class="btn b2" data-a="claim-toggle">'+(S.cl.open?"Tutup form klaim":"🛡️ Ajukan Klaim Garansi")+'</button></div>'+(w.windowEndsAt?'<div class="note" style="text-align:center;margin:-8px 0 18px">Masa klaim sampai '+e(new Date(w.windowEndsAt).toLocaleDateString("id-ID",{timeZone:"Asia/Jakarta",day:"numeric",month:"long",year:"numeric"}))+'</div>':"");
       else if(p.status==="Selesai"){
-        var rt={not_paid:"Garansi aktif setelah pesanan lunas.",window_expired:"Masa klaim garansi sudah berakhir.",quota_exhausted:"Batas klaim order ini sudah habis.",too_many_pending:"Masih ada klaim menunggu peninjauan admin."}[w.reason];
+        var rt={not_paid:"Garansi aktif setelah pesanan lunas.",window_expired:"Masa klaim garansi sudah berakhir.",quota_exhausted:"Semua file pesanan ini sudah pernah diklaim.",too_many_pending:"Masih ada klaim menunggu peninjauan admin."}[w.reason];
         if(rt)wb='<div class="msg warn">'+e(rt)+'</div>'
       }
       r+=wb+claimForm(p)+claimCards(p.claims)
@@ -376,22 +393,26 @@ function applyPromo(){
 }
 function sendClaim(){
   var c=S.cl,p=S.res,shot=pickFile("c-shot")||c.fobj;c.fobj=shot||null;if(!p)return;
+  var w=p.warranty||{},hasList=w.deliveredFiles&&w.deliveredFiles.length,seen={},files=[];
+  (hasList?c.files:String(c.file||"").split(/[\n,;]+/)).forEach(function(x){x=String(x).trim();if(x&&!seen[x.toLowerCase()]){seen[x.toLowerCase()]=1;files.push(x)}});
   if(!c.plat){c.err="Pilih platform yang menolak.";render();return}
-  if(!c.file.trim()){c.err="Pilih atau isi nama file.";render();return}
+  if(!files.length){c.err="Pilih minimal 1 file.";render();return}
   if(!c.reason.trim()){c.err="Isi teks penolakan dari platform.";render();return}
   if(!shot){c.err="Unggah screenshot penolakan.";render();return}
   if(!c.agree){c.err="Centang persetujuan Syarat & Ketentuan.";render();return}
   c.err="";c.busy=true;render();
   shrink(shot).then(function(g){
     if(g.size>C.maxProof)throw new Error("big");
-    return b64(g).then(function(d){return post({action:"warranty_claim",id:p.id,rejectedFile:c.file.trim(),reason:c.reason.trim(),claimType:c.type,platform:c.plat,agreed:true,proofFileName:g.name,mimeType:g.type||"image/jpeg",fileData:d})})
+    return b64(g).then(function(d){return post({action:"warranty_claim",id:p.id,rejectedFiles:files,reason:c.reason.trim(),claimType:c.type,platform:c.plat,agreed:true,proofFileName:g.name,mimeType:g.type||"image/jpeg",fileData:d})})
   }).then(function(d){
     c.busy=false;
-    if(d&&d.success){c.done=d.claim||{fileName:c.file};c.fobj=null;getq({id:p.id}).then(function(x){if(x&&x.id)S.res=x;render();window.scrollTo(0,0)}).catch(function(){render()})}
+    if(d&&d.success){c.done=d.claim||{count:files.length};c.fobj=null;c.files=[];c.file="";getq({id:p.id}).then(function(x){if(x&&x.id)S.res=x;render();window.scrollTo(0,0)}).catch(function(){render()})}
     else{c.err=(d&&(d.message||d.error))||"Klaim gagal.";render()}
   }).catch(function(x){c.busy=false;c.err=x&&x.message==="big"?"Screenshot masih lebih dari 4MB.":"Koneksi terputus. Lacak ulang dulu sebelum mencoba lagi agar klaim tidak dobel.";render()})
 }
 function toggle(a,v){var i=a.indexOf(v);if(i>-1)a.splice(i,1);else a.push(v)}
+/* render ulang tanpa menggeser posisi gulir daftar file */
+function keepList(fn){var fl=document.querySelector(".fl"),st=fl?fl.scrollTop:0;fn();render();fl=document.querySelector(".fl");if(fl)fl.scrollTop=st}
 
 document.addEventListener("click",function(ev){
   var t=ev.target.closest("[data-a]");if(!t)return;var a=t.getAttribute("data-a"),v=t.getAttribute("data-v"),id=t.getAttribute("data-id");
@@ -412,6 +433,8 @@ document.addEventListener("click",function(ev){
     case"claim-more":var k=S.cl.id;S.cl=newClaim();S.cl.id=k;S.cl.open=true;render();break;
     case"claim-close":S.cl.open=false;S.cl.done=null;render();break;
     case"claim-send":sendClaim();break;
+    case"cfile":keepList(function(){toggle(S.cl.files,v)});break;
+    case"call":keepList(function(){var ck2=claimedKeys(),pl2=(S.cl.plat||"").toLowerCase(),av=((S.res.warranty||{}).deliveredFiles||[]).filter(function(x){return !(S.cl.plat&&ck2[x.toLowerCase()+"|"+pl2])});S.cl.files=av.every(function(x){return S.cl.files.indexOf(x)>-1})?[]:av});break;
   }
 });
 document.addEventListener("keydown",function(ev){
@@ -423,14 +446,14 @@ document.addEventListener("input",function(ev){
   if(i==="f-name")S.form.name=v;else if(i==="f-phone")S.form.phone=v;
   else if(i==="s-id")S.lid=v.toUpperCase();
   else if(i==="c-reason")S.cl.reason=v;
-  else if(i==="c-file"&&el.tagName==="INPUT")S.cl.file=v;
+  else if(i==="c-file")S.cl.file=v;
   else if(i==="f-promo"){var f=S.form;f.code=v;if(f.promo||f.pmsg){f.promo=null;f.pmsg=null;render();var n=document.getElementById("f-promo");if(n){n.focus();try{n.setSelectionRange(n.value.length,n.value.length)}catch(x){}}}}
 });
 document.addEventListener("change",function(ev){
   var el=ev.target,i=el.id,v=el.value;
   if(i==="f-qty"){S.form.qty=Math.max(Math.round(Number(v)||0),minCustom());S.form.promo=null;S.form.pmsg=null;render()}
   else if(i==="c-type"){S.cl.type=v;render()}
-  else if(i==="c-plat")S.cl.plat=v;
+  else if(i==="c-plat"){S.cl.plat=v;S.cl.files=[];render()}
   else if(i==="c-file")S.cl.file=v;
   else if(i==="c-shot")S.cl.fobj=(el.files&&el.files[0])||null;
   else if(i==="c-agree")S.cl.agree=el.checked;
@@ -454,6 +477,7 @@ fj(C.url+"?action=config",{},1,8000).then(function(d){
   if(d.production)C.prod={vpd:d.production.videosPerDay,start:d.production.workWindowStartHour,end:d.production.workWindowEndHour,buffer:d.production.setupBufferHours};
   if(d.platforms&&d.platforms.length)PLATS=d.platforms;
   if(d.dpPct)C.dpPct=d.dpPct;
+  if(d.warranty)C.war={days:d.warranty.days||C.war.days,pct:d.warranty.pct||C.war.pct,auto:d.warranty.auto!==false,maxBatch:d.warranty.maxBatch||50};
   C.queueHours=Number(d.queueHours)||0;
   var ae=document.activeElement;if(!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)))render()
 }).catch(function(){});
