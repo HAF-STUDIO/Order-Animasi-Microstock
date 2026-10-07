@@ -106,7 +106,7 @@ var C={
   dpPct:50,war:{days:30,pct:100,auto:true,maxBatch:50},tz:7,maxProof:4*1024*1024,queueHours:0,
   bank:{name:"BCA",no:"5410769257",holder:"Hersani Ardia Firmansyah"}
 };
-var PLATS=["Adobe Stock","Shutterstock"];
+var PLATS=["Adobe Stock","Shutterstock","Vecteezy"];
 var STEPS=["Menunggu Bayar","Verifikasi","Dikerjakan","Selesai"];
 var TYPES=[
  {k:"Teknis",t:"Masalah teknis (blur, noise, artifacts, exposure)"},
@@ -296,7 +296,7 @@ function claimForm(p){
    '<div class="f"><label>Alasan penolakan</label><select id="c-type">'+TYPES.map(function(t){return '<option value="'+t.k+'" '+(c.type===t.k?"selected":"")+'>'+e(t.t)+'</option>'}).join("")+'</select>'+(cn?'<div class="note">Akan dikerjakan sebagai video pengganti dengan konsep baru.</div>':"")+'</div>'+
    '<div class="f"><label>Platform yang menolak</label><select id="c-plat"><option value="">Pilih platform</option>'+(p.platforms&&p.platforms.length?p.platforms:PLATS).map(function(x){return '<option '+(c.plat===x?"selected":"")+'>'+e(x)+'</option>'}).join("")+'</select></div>'+
    '<div class="f"><label>File yang ditolak</label>'+fileUi+'</div>'+
-   '<div class="f"><label>Teks penolakan dari platform</label><input type="text" id="c-reason" value="'+e(c.reason)+'" placeholder="Misal: Artifacts detected" autocomplete="off"><div class="note">Salin persis dari Adobe Stock / Shutterstock. Satu alasan untuk semua file yang dipilih.</div></div>'+
+   '<div class="f"><label>Teks penolakan dari platform</label><input type="text" id="c-reason" value="'+e(c.reason)+'" placeholder="Misal: Artifacts detected" autocomplete="off"><div class="note">Salin persis dari platform yang menolak. Satu alasan untuk semua file yang dipilih.</div></div>'+
    '<div class="f"><label>Screenshot bukti penolakan</label><input type="file" id="c-shot" accept="image/*" '+(c.busy?"disabled":"")+'>'+(c.fobj?'<div class="picked">Dipilih: '+e(c.fobj.name)+'</div>':"")+'<div class="note">Satu screenshot cukup untuk semua file, asalkan memuat nama file, alasan, dan tanggal.</div></div>'+
    '<label class="agree"><input type="checkbox" id="c-agree" '+(c.agree?"checked":"")+'><span>Saya sudah membaca dan menyetujui Syarat &amp; Ketentuan garansi.</span></label>'+
    '<button class="btn b1" data-a="claim-send" '+(c.busy?"disabled":"")+'>'+(c.busy?"Mengirim...":"Kirim Klaim"+(c.files.length>1?" ("+c.files.length+" file)":""))+'</button> <button class="btn b2 sm" data-a="claim-close" style="margin-top:10px" '+(c.busy?"disabled":"")+'>Batal</button></div>'
