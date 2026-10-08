@@ -95,11 +95,12 @@ footer{text-align:center;color:var(--faint);font-size:13px;margin:44px 0 60px;pa
 <body>
 <div class="stripe"></div>
 <div id="app">Memuat aplikasi...</div>
+<script>window.HAF_API_URL="https://script.google.com/macros/s/ISI_ID_DEPLOYMENT/exec";</script>
 <script>
 (function(){
 "use strict";
 var C={
-  url:"https://script.google.com/macros/s/AKfycbwZVWz87uMWL7_M6buAvugqiYItZB72R74LmXCU9n2SoGKI2vdRANDuGbidbwSbm8h_/exec",
+  url:(window.HAF_API_URL||"GANTI_DENGAN_URL_WEB_APP_GAS"),
   name:"Order Animasi Microstock",
   rates:{packages:[{qty:10,price:75000,label:"Starter"},{qty:20,price:120000,label:"Standar"},{qty:30,price:150000,label:"Maksimal"}],over:5000},
   prod:{vpd:20,start:19,end:24,buffer:0.5},
@@ -321,6 +322,7 @@ function nextCard(p){
     else h+='<div class="ok">Semua beres! File hasil siap diunduh.</div>';
     h+='</div>'
   }
+  if(p.previewLink&&st==="Selesai"&&!p.driveLink)h+='<div class="drive"><div style="flex:1"><label>Pratinjau hasil</label><div style="font-size:13.5px;color:#0E7C71">Cuplikan video (resolusi penuh terbuka setelah lunas).</div></div><a class="btn bd" href="'+e(p.previewLink)+'" target="_blank" rel="noopener">Lihat Pratinjau</a></div>';
   if(p.driveLink&&(st==="Dikerjakan"||st==="Selesai"))h+='<div class="drive"><div style="flex:1"><label>File hasil animasi</label><div style="font-size:13.5px;color:#0E7C71">Folder Drive pesanan ini siap dibuka.</div></div><a class="btn bd" href="'+e(p.driveLink)+'" target="_blank" rel="noopener">Buka Folder</a></div>';
   return h
 }
@@ -483,5 +485,6 @@ fj(C.url+"?action=config",{},1,8000).then(function(d){
 }).catch(function(){});
 })();
 </script>
+
 </body>
 </html>
